@@ -1,0 +1,148 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Government Style Components */
+@layer components {
+  .gov-header {
+    @apply bg-[#0d559e] text-white py-2;
+  }
+  
+  .gov-main-header {
+    @apply bg-white shadow-lg sticky top-0 z-50;
+  }
+  
+  .gov-nav-link {
+    @apply text-gray-700 hover:text-[#0d559e] font-medium transition-colors;
+  }
+  
+  .gov-dropdown {
+    @apply absolute top-full left-0 mt-1 w-64 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200;
+  }
+  
+  .gov-dropdown-item {
+    @apply block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors;
+  }
+  
+  .gov-stat-card {
+    @apply bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-6;
+  }
+  
+  .gov-stat-number {
+    @apply text-3xl font-bold text-gray-900 mb-2;
+  }
+  
+  .gov-stat-label {
+    @apply text-sm font-medium text-gray-600;
+  }
+  
+  .gov-tab-nav {
+    @apply border-b border-gray-200;
+  }
+  
+  .gov-tab-button {
+    @apply py-2 px-1 border-b-2 font-medium text-sm transition-colors;
+  }
+  
+  .gov-tab-active {
+    @apply border-[#0d559e] text-[#0d559e];
+  }
+  
+  .gov-tab-inactive {
+    @apply border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300;
+  }
+  
+  .gov-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  
+  .gov-badge-blue {
+    @apply bg-[#0d559e] text-white;
+  }
+  
+  .gov-badge-green {
+    @apply bg-green-100 text-green-800;
+  }
+  
+  .gov-badge-purple {
+    @apply bg-purple-100 text-purple-800;
+  }
+  
+  .gov-badge-orange {
+    @apply bg-orange-100 text-orange-800;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 210 100% 31%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 210 100% 31%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 94.1%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom Animations */
+@keyframes scroll-right-to-left {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-scroll-right-to-left {
+  animation: scroll-right-to-left 30s linear infinite;
+}
+
+.animate-scroll-right-to-left:hover {
+  animation-play-state: paused;
+}

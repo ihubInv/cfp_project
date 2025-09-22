@@ -1,0 +1,15 @@
+{
+  "short_name": "IIT Mandi iHub",
+  "name": "IIT Mandi iHub & HCi Foundation Research Platform",
+  "icons": [
+    {
+      "src": "iHub.png",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/png"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#0d559e",
+  "background_color": "#ffffff"
+}

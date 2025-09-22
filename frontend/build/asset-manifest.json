@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/static/css/main.6a121b4a.css",
+    "main.js": "/static/js/main.02123f4c.js",
+    "static/media/serb-online.png": "/static/media/serb-online.a0f1e314e7d298b75ce4.png",
+    "static/media/serb-gov.png": "/static/media/serb-gov.5060eb2fb7096cd041b9.png",
+    "index.html": "/index.html"
+  },
+  "entrypoints": [
+    "static/css/main.6a121b4a.css",
+    "static/js/main.02123f4c.js"
+  ]
+}
