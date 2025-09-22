@@ -346,10 +346,6 @@ const PublicationsPage = () => {
                               <FileText className="w-4 h-4 mr-1" />
                               Status: {publication.status}
                             </div>
-                            <div className="flex items-center">
-                              <Globe className="w-4 h-4 mr-1" />
-                              Project ID: {publication.projectId}
-                            </div>
                           </div>
                           
                           <div className="flex space-x-2">
