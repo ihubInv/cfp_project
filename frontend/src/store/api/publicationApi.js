@@ -3,10 +3,22 @@ import { apiSlice } from "./apiSlice"
 export const publicationApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getPublications: builder.query({
-      query: (params) => ({
-        url: "/publications",
-        params,
-      }),
+      query: (params) => {
+        // Filter out undefined and empty string values
+        const filteredParams = Object.fromEntries(
+          Object.entries(params).filter(([key, value]) => 
+            value !== undefined && value !== "" && value !== null
+          )
+        )
+        return {
+          url: "/publications",
+          params: filteredParams,
+        }
+      },
+      providesTags: ["Publication"],
+    }),
+    getPublicationStats: builder.query({
+      query: () => "/publications/stats",
       providesTags: ["Publication"],
     }),
     getPublicationById: builder.query({
@@ -41,6 +53,7 @@ export const publicationApi = apiSlice.injectEndpoints({
 
 export const {
   useGetPublicationsQuery,
+  useGetPublicationStatsQuery,
   useGetPublicationByIdQuery,
   useCreatePublicationMutation,
   useUpdatePublicationMutation,

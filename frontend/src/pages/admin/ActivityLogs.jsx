@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Input } from "../../components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table"
 import { Button } from "../../components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../../components/ui/dialog"
 import { 
   Search, 
   Activity, 
@@ -28,6 +29,7 @@ const ActivityLogs = () => {
     dateRange: undefined,
     page: 1,
   })
+  const [selectedLog, setSelectedLog] = useState(null)
 
   // Fetch activity logs from API
   const { data: activityLogsData, isLoading, error } = useGetActivityLogsQuery(filters)
@@ -37,8 +39,12 @@ const ActivityLogs = () => {
     setFilters((prev) => ({
       ...prev,
       [key]: value === "" ? undefined : value,
-      page: 1,
+      page: key === "page" ? value : 1,
     }))
+  }
+
+  const handleViewDetails = (log) => {
+    setSelectedLog(log)
   }
 
   const getActionBadge = (action) => {
@@ -333,7 +339,12 @@ const ActivityLogs = () => {
                       </code>
                     </TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="sm" title="View Details">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        title="View Details"
+                        onClick={() => handleViewDetails(log)}
+                      >
                         <Eye className="h-4 w-4" />
                       </Button>
                     </TableCell>
@@ -374,6 +385,74 @@ const ActivityLogs = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* View Details Modal */}
+      <Dialog open={!!selectedLog} onOpenChange={() => setSelectedLog(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Activity Log Details</DialogTitle>
+            <DialogDescription>
+              Detailed information about this activity log entry
+            </DialogDescription>
+          </DialogHeader>
+          {selectedLog && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Timestamp</label>
+                  <p className="text-sm">{formatDate(selectedLog.createdAt)}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">User</label>
+                  <p className="text-sm">{selectedLog.user?.firstName} {selectedLog.user?.lastName}</p>
+                  <p className="text-xs text-gray-500">{selectedLog.user?.email}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Action</label>
+                  <div className="mt-1">{getActionBadge(selectedLog.action)}</div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Target Type</label>
+                  <div className="mt-1">{getTargetTypeBadge(selectedLog.targetType)}</div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">IP Address</label>
+                  <p className="text-sm font-mono">{selectedLog.ipAddress}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">User Agent</label>
+                  <p className="text-xs text-gray-600 break-all">{selectedLog.userAgent}</p>
+                </div>
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium text-gray-500">Description</label>
+                <p className="text-sm mt-1 p-3 bg-gray-50 rounded-md">
+                  {selectedLog.details?.description || "No description available"}
+                </p>
+              </div>
+
+              {selectedLog.details?.comments && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Comments</label>
+                  <p className="text-sm mt-1 p-3 bg-gray-50 rounded-md">
+                    {selectedLog.details.comments}
+                  </p>
+                </div>
+              )}
+
+              {selectedLog.details?.metadata && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Metadata</label>
+                  <pre className="text-xs mt-1 p-3 bg-gray-50 rounded-md overflow-auto">
+                    {JSON.stringify(selectedLog.details.metadata, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

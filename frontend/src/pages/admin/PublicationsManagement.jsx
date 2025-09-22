@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { 
   useGetPublicationsQuery,
+  useGetPublicationStatsQuery,
   useCreatePublicationMutation,
   useUpdatePublicationMutation,
   useDeletePublicationMutation
@@ -35,25 +36,15 @@ const PublicationsManagement = () => {
   const [publicationFormDialog, setPublicationFormDialog] = useState(false)
   const [editingPublication, setEditingPublication] = useState(null)
   const [formData, setFormData] = useState({
-    title: "",
-    type: "",
-    authors: [],
-    abstract: "",
-    journal: "",
-    volume: "",
-    issue: "",
-    pages: "",
-    doi: "",
-    publicationDate: "",
+    name: "",
+    publicationDetail: "",
     status: "Published",
-    keywords: [],
     projectId: "",
   })
-  const [newAuthor, setNewAuthor] = useState("")
-  const [newKeyword, setNewKeyword] = useState("")
   const [formError, setFormError] = useState("")
 
   const { data, isLoading, error } = useGetPublicationsQuery(filters)
+  const { data: statsData, isLoading: statsLoading } = useGetPublicationStatsQuery()
   const [createPublication, { isLoading: isCreating }] = useCreatePublicationMutation()
   const [updatePublication, { isLoading: isUpdating }] = useUpdatePublicationMutation()
   const [deletePublication, { isLoading: isDeleting }] = useDeletePublicationMutation()
@@ -74,29 +65,13 @@ const PublicationsManagement = () => {
     if (formError) setFormError("")
   }
 
-  const handleArrayAdd = (arrayName, value, setter) => {
-    if (value.trim()) {
-      setFormData(prev => ({
-        ...prev,
-        [arrayName]: [...prev[arrayName], value.trim()],
-      }))
-      setter("")
-    }
-  }
-
-  const handleArrayRemove = (arrayName, index) => {
-    setFormData(prev => ({
-      ...prev,
-      [arrayName]: prev[arrayName].filter((_, i) => i !== index),
-    }))
-  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setFormError("")
 
     // Validation
-    if (!formData.title || !formData.type || !formData.authors.length) {
+    if (!formData.name || !formData.publicationDetail || !formData.projectId) {
       setFormError("Please fill in all required fields")
       return
     }
@@ -104,7 +79,6 @@ const PublicationsManagement = () => {
     try {
       const submitData = {
         ...formData,
-        publicationDate: formData.publicationDate ? new Date(formData.publicationDate) : null,
       }
 
       if (editingPublication) {
@@ -119,18 +93,9 @@ const PublicationsManagement = () => {
       setPublicationFormDialog(false)
       setEditingPublication(null)
       setFormData({
-        title: "",
-        type: "",
-        authors: [],
-        abstract: "",
-        journal: "",
-        volume: "",
-        issue: "",
-        pages: "",
-        doi: "",
-        publicationDate: "",
+        name: "",
+        publicationDetail: "",
         status: "Published",
-        keywords: [],
         projectId: "",
       })
     } catch (err) {
@@ -141,18 +106,9 @@ const PublicationsManagement = () => {
   const handleEditPublication = (publication) => {
     setEditingPublication(publication)
     setFormData({
-      title: publication.title || "",
-      type: publication.type || "",
-      authors: publication.authors || [],
-      abstract: publication.abstract || "",
-      journal: publication.journal || "",
-      volume: publication.volume || "",
-      issue: publication.issue || "",
-      pages: publication.pages || "",
-      doi: publication.doi || "",
-      publicationDate: publication.publicationDate ? new Date(publication.publicationDate).toISOString().split('T')[0] : "",
+      name: publication.name || "",
+      publicationDetail: publication.publicationDetail || "",
       status: publication.status || "Published",
-      keywords: publication.keywords || [],
       projectId: publication.projectId || "",
     })
     setPublicationFormDialog(true)
@@ -171,18 +127,9 @@ const PublicationsManagement = () => {
   const handleNewPublication = () => {
     setEditingPublication(null)
     setFormData({
-      title: "",
-      type: "",
-      authors: [],
-      abstract: "",
-      journal: "",
-      volume: "",
-      issue: "",
-      pages: "",
-      doi: "",
-      publicationDate: "",
+      name: "",
+      publicationDetail: "",
       status: "Published",
-      keywords: [],
       projectId: "",
     })
     setPublicationFormDialog(true)
@@ -205,46 +152,8 @@ const PublicationsManagement = () => {
     )
   }
 
-  const getTypeBadge = (type) => {
-    const variants = {
-      "Journal Article": { variant: "default", className: "bg-blue-100 text-blue-800" },
-      "Conference Paper": { variant: "default", className: "bg-purple-100 text-purple-800" },
-      "Book Chapter": { variant: "default", className: "bg-green-100 text-green-800" },
-      "Technical Report": { variant: "default", className: "bg-orange-100 text-orange-800" },
-      "Preprint": { variant: "default", className: "bg-gray-100 text-gray-800" },
-    }
 
-    const config = variants[type] || { variant: "secondary", className: "bg-gray-100 text-gray-800" }
-
-    return (
-      <Badge variant={config.variant} className={config.className}>
-        {type}
-      </Badge>
-    )
-  }
-
-  const publicationTypes = [
-    "Journal Article",
-    "Conference Paper",
-    "Book Chapter",
-    "Technical Report",
-    "Preprint",
-    "Other"
-  ]
-
-  const getPublicationStats = () => {
-    if (!data?.publications) return { total: 0, published: 0, underReview: 0, submitted: 0 }
-    
-    const stats = data.publications.reduce((acc, pub) => {
-      acc.total++
-      acc[pub.status.toLowerCase().replace(' ', '')] = (acc[pub.status.toLowerCase().replace(' ', '')] || 0) + 1
-      return acc
-    }, { total: 0, published: 0, underreview: 0, submitted: 0 })
-
-    return stats
-  }
-
-  const stats = getPublicationStats()
+  const stats = statsData?.stats || { total: 0, published: 0, underReview: 0, submitted: 0, draft: 0 }
 
   return (
     <div className="space-y-6">
@@ -268,7 +177,7 @@ const PublicationsManagement = () => {
             <FileText className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data?.publications?.length || 0}</div>
+            <div className="text-2xl font-bold">{stats.total}</div>
             <p className="text-xs text-muted-foreground">All publications</p>
           </CardContent>
         </Card>
@@ -290,7 +199,7 @@ const PublicationsManagement = () => {
             <FileText className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.underreview}</div>
+            <div className="text-2xl font-bold">{stats.underReview}</div>
             <p className="text-xs text-muted-foreground">In review process</p>
           </CardContent>
         </Card>
@@ -313,7 +222,7 @@ const PublicationsManagement = () => {
           <CardTitle>Filters</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
@@ -323,22 +232,6 @@ const PublicationsManagement = () => {
                 className="pl-10"
               />
             </div>
-            <Select
-              value={filters.type}
-              onValueChange={(value) => handleFilterChange("type", value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="All Types">All Types</SelectItem>
-                {publicationTypes.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
             <Select
               value={filters.status}
               onValueChange={(value) => handleFilterChange("status", value)}
@@ -361,7 +254,7 @@ const PublicationsManagement = () => {
       {/* Publications Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Publications ({data?.publications?.length || 0})</CardTitle>
+          <CardTitle>Publications ({data?.total || 0})</CardTitle>
           <CardDescription>Manage research publications and academic papers</CardDescription>
         </CardHeader>
         <CardContent>
@@ -378,12 +271,10 @@ const PublicationsManagement = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Authors</TableHead>
-                  <TableHead>Journal</TableHead>
+                  <TableHead>Publication Name</TableHead>
+                  <TableHead>Project</TableHead>
+                  <TableHead>Details</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Published</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -391,39 +282,22 @@ const PublicationsManagement = () => {
                 {data?.publications?.map((publication) => (
                   <TableRow key={publication._id}>
                     <TableCell className="font-medium max-w-xs">
-                      <div className="truncate">{publication.title}</div>
+                      <div className="truncate">{publication.name}</div>
                     </TableCell>
-                    <TableCell>{getTypeBadge(publication.type)}</TableCell>
                     <TableCell>
                       <div className="max-w-xs">
-                        <p className="truncate text-sm">
-                          {publication.authors?.slice(0, 2).join(", ")}
-                          {publication.authors?.length > 2 && ` +${publication.authors.length - 2} more`}
-                        </p>
+                        <p className="truncate text-sm font-medium">{publication.projectTitle}</p>
+                        <p className="text-xs text-gray-500">{publication.projectFileNumber}</p>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="max-w-xs">
-                        <p className="truncate text-sm">{publication.journal}</p>
+                        <p className="truncate text-sm">{publication.publicationDetail}</p>
                       </div>
                     </TableCell>
                     <TableCell>{getStatusBadge(publication.status)}</TableCell>
                     <TableCell>
-                      {publication.publicationDate ? new Date(publication.publicationDate).toLocaleDateString() : "N/A"}
-                    </TableCell>
-                    <TableCell>
                       <div className="flex space-x-2">
-                        {publication.doi && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => window.open(`https://doi.org/${publication.doi}`, '_blank')}
-                            title="View Publication"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </Button>
-                        )}
-
                         <Button
                           variant="ghost"
                           size="sm"
@@ -498,31 +372,26 @@ const PublicationsManagement = () => {
             )}
 
             <div>
-              <Label htmlFor="title">Title *</Label>
+              <Label htmlFor="name">Publication Name *</Label>
               <Input
-                id="title"
-                value={formData.title}
-                onChange={(e) => handleInputChange("title", e.target.value)}
-                placeholder="Publication title"
+                id="name"
+                value={formData.name}
+                onChange={(e) => handleInputChange("name", e.target.value)}
+                placeholder="Publication name"
                 required
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="type">Type *</Label>
-                <Select value={formData.type} onValueChange={(value) => handleInputChange("type", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {publicationTypes.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="projectId">Project ID *</Label>
+                <Input
+                  id="projectId"
+                  value={formData.projectId}
+                  onChange={(e) => handleInputChange("projectId", e.target.value)}
+                  placeholder="Project ID"
+                  required
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="status">Status</Label>
@@ -540,140 +409,16 @@ const PublicationsManagement = () => {
               </div>
             </div>
 
-            {/* Authors */}
             <div className="space-y-2">
-              <Label>Authors *</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={newAuthor}
-                  onChange={(e) => setNewAuthor(e.target.value)}
-                  placeholder="Author name"
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleArrayAdd("authors", newAuthor, setNewAuthor))}
-                />
-                <Button type="button" onClick={() => handleArrayAdd("authors", newAuthor, setNewAuthor)}>
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-              {formData.authors.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {formData.authors.map((author, index) => (
-                    <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                      {author}
-                      <button
-                        type="button"
-                        onClick={() => handleArrayRemove("authors", index)}
-                        className="ml-1 text-xs hover:text-red-600"
-                      >
-                        ×
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="abstract">Abstract</Label>
+              <Label htmlFor="publicationDetail">Publication Details *</Label>
               <Textarea
-                id="abstract"
-                value={formData.abstract}
-                onChange={(e) => handleInputChange("abstract", e.target.value)}
-                placeholder="Publication abstract"
+                id="publicationDetail"
+                value={formData.publicationDetail}
+                onChange={(e) => handleInputChange("publicationDetail", e.target.value)}
+                placeholder="Publication details (journal, conference, etc.)"
                 rows={4}
+                required
               />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="journal">Journal/Conference</Label>
-                <Input
-                  id="journal"
-                  value={formData.journal}
-                  onChange={(e) => handleInputChange("journal", e.target.value)}
-                  placeholder="Journal or conference name"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="doi">DOI</Label>
-                <Input
-                  id="doi"
-                  value={formData.doi}
-                  onChange={(e) => handleInputChange("doi", e.target.value)}
-                  placeholder="Digital Object Identifier"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="volume">Volume</Label>
-                <Input
-                  id="volume"
-                  value={formData.volume}
-                  onChange={(e) => handleInputChange("volume", e.target.value)}
-                  placeholder="Volume"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="issue">Issue</Label>
-                <Input
-                  id="issue"
-                  value={formData.issue}
-                  onChange={(e) => handleInputChange("issue", e.target.value)}
-                  placeholder="Issue"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="pages">Pages</Label>
-                <Input
-                  id="pages"
-                  value={formData.pages}
-                  onChange={(e) => handleInputChange("pages", e.target.value)}
-                  placeholder="Page numbers"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="publicationDate">Publication Date</Label>
-              <Input
-                id="publicationDate"
-                type="date"
-                value={formData.publicationDate}
-                onChange={(e) => handleInputChange("publicationDate", e.target.value)}
-              />
-            </div>
-
-            {/* Keywords */}
-            <div className="space-y-2">
-              <Label>Keywords</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={newKeyword}
-                  onChange={(e) => setNewKeyword(e.target.value)}
-                  placeholder="Keyword"
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleArrayAdd("keywords", newKeyword, setNewKeyword))}
-                />
-                <Button type="button" onClick={() => handleArrayAdd("keywords", newKeyword, setNewKeyword)}>
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-              {formData.keywords.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {formData.keywords.map((keyword, index) => (
-                    <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                      {keyword}
-                      <button
-                        type="button"
-                        onClick={() => handleArrayRemove("keywords", index)}
-                        className="ml-1 text-xs hover:text-red-600"
-                      >
-                        ×
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-              )}
             </div>
 
             <div className="flex justify-end space-x-4 pt-4">
