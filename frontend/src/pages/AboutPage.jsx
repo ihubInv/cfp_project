@@ -91,28 +91,11 @@ const AboutPage = () => {
         </div>
       </section>
 
-      {/* Mission & Vision Cards */}
+      {/* Vision Card */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Card className="shadow-lg border-0">
-              <CardHeader className="bg-gradient-to-r from-[#0d559e] to-[#004d8c] text-white rounded-t-lg">
-                <CardTitle className="flex items-center">
-                  <Target className="w-6 h-6 mr-3" />
-                  Our Mission
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <p className="text-gray-700 leading-relaxed">
-                  To accelerate innovation and entrepreneurship by providing world-class 
-                  research infrastructure, fostering interdisciplinary collaboration, 
-                  and translating cutting-edge research into practical solutions that 
-                  address societal challenges and drive economic growth in the Himalayan region.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-lg border-0">
+          <div className="flex justify-center">
+            <Card className="shadow-lg border-0 max-w-2xl">
               <CardHeader className="bg-gradient-to-r from-[#0d559e] to-[#004d8c] text-white rounded-t-lg">
                 <CardTitle className="flex items-center">
                   <Lightbulb className="w-6 h-6 mr-3" />
@@ -120,11 +103,8 @@ const AboutPage = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
-                <p className="text-gray-700 leading-relaxed">
-                  To become a globally recognized center of excellence in research and 
-                  innovation, serving as a catalyst for technological advancement and 
-                  sustainable development in the Himalayan region while contributing to 
-                  India's position as a leader in science and technology.
+                <p className="text-gray-700 leading-relaxed text-center">
+                  To be an internationally recognized hub that nurtures HCi research, enables technology translation for industry, and scales skill development.
                 </p>
               </CardContent>
             </Card>
@@ -132,25 +112,22 @@ const AboutPage = () => {
         </div>
       </section>
 
-      {/* Core Values */}
+      {/* Sectors Addressed in Human-Computer Interaction */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Core Values</h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              The principles that guide our work and shape our culture
-            </p>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">The sectors addressed in Human-Computer Interaction</h2>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card className="text-center p-6 hover:shadow-lg transition-shadow">
               <CardContent className="pt-6">
                 <div className="w-16 h-16 bg-[#0d559e]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <BookOpen className="w-8 h-8 text-[#0d559e]" />
+                  <Users className="w-8 h-8 text-[#0d559e]" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3">Excellence</h3>
+                <h3 className="text-xl font-semibold mb-3">Assistive Technologies</h3>
                 <p className="text-gray-600">
-                  Committed to maintaining the highest standards in research and innovation
+                  Developing innovative solutions to enhance accessibility and improve quality of life for individuals with disabilities through advanced human-computer interaction interfaces.
                 </p>
               </CardContent>
             </Card>
@@ -158,11 +135,23 @@ const AboutPage = () => {
             <Card className="text-center p-6 hover:shadow-lg transition-shadow">
               <CardContent className="pt-6">
                 <div className="w-16 h-16 bg-[#0d559e]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Users className="w-8 h-8 text-[#0d559e]" />
+                  <Building className="w-8 h-8 text-[#0d559e]" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3">Collaboration</h3>
+                <h3 className="text-xl font-semibold mb-3">Device-Led Technologies</h3>
                 <p className="text-gray-600">
-                  Fostering partnerships between academia, industry, and government
+                  Creating intelligent devices and IoT solutions that seamlessly integrate with human behavior patterns and enhance daily interactions through smart technology.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center p-6 hover:shadow-lg transition-shadow">
+              <CardContent className="pt-6">
+                <div className="w-16 h-16 bg-[#0d559e]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Lightbulb className="w-8 h-8 text-[#0d559e]" />
+                </div>
+                <h3 className="text-xl font-semibold mb-3">Experience Technologies</h3>
+                <p className="text-gray-600">
+                  Designing immersive user experiences through virtual reality, augmented reality, and mixed reality technologies that transform how humans interact with digital environments.
                 </p>
               </CardContent>
             </Card>
@@ -172,9 +161,32 @@ const AboutPage = () => {
                 <div className="w-16 h-16 bg-[#0d559e]/10 rounded-full flex items-center justify-center mx-auto mb-4">
                   <TrendingUp className="w-8 h-8 text-[#0d559e]" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3">Innovation</h3>
+                <h3 className="text-xl font-semibold mb-3">Generative AI Technologies</h3>
                 <p className="text-gray-600">
-                  Encouraging creative thinking and breakthrough solutions
+                  Advancing AI-powered interfaces that understand natural language, generate creative content, and provide intelligent assistance through conversational and multimodal interactions.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Primary Activities of iHub */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Primary activities of iHub</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="text-center p-6 hover:shadow-lg transition-shadow">
+              <CardContent className="pt-6">
+                <div className="w-16 h-16 bg-[#0d559e]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <BookOpen className="w-8 h-8 text-[#0d559e]" />
+                </div>
+                <h3 className="text-xl font-semibold mb-3">Research & Technology Development</h3>
+                <p className="text-gray-600">
+                  Conducting cutting-edge research in HCi domains, developing innovative technologies, and creating solutions that bridge the gap between academic research and real-world applications.
                 </p>
               </CardContent>
             </Card>
@@ -184,59 +196,33 @@ const AboutPage = () => {
                 <div className="w-16 h-16 bg-[#0d559e]/10 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Award className="w-8 h-8 text-[#0d559e]" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3">Impact</h3>
+                <h3 className="text-xl font-semibold mb-3">Skill Development</h3>
                 <p className="text-gray-600">
-                  Creating meaningful change through research and development
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Research Focus Areas */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Research Focus Areas</h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Our research spans across multiple domains to address complex challenges
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="p-6 hover:shadow-lg transition-shadow">
-              <CardContent className="pt-6">
-                <div className="w-12 h-12 bg-[#0d559e]/10 rounded-lg flex items-center justify-center mb-4">
-                  <Building className="w-6 h-6 text-[#0d559e]" />
-                </div>
-                <h3 className="text-xl font-semibold mb-3">Materials Science</h3>
-                <p className="text-gray-600">
-                  Advanced materials research for sustainable technologies and applications
+                  Offering comprehensive training programs, workshops, and certification courses to develop expertise in emerging technologies and prepare professionals for the future workforce.
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="p-6 hover:shadow-lg transition-shadow">
+            <Card className="text-center p-6 hover:shadow-lg transition-shadow">
               <CardContent className="pt-6">
-                <div className="w-12 h-12 bg-[#0d559e]/10 rounded-lg flex items-center justify-center mb-4">
-                  <Globe className="w-6 h-6 text-[#0d559e]" />
+                <div className="w-16 h-16 bg-[#0d559e]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Target className="w-8 h-8 text-[#0d559e]" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3">Environmental Science</h3>
+                <h3 className="text-xl font-semibold mb-3">Incubation & Acceleration</h3>
                 <p className="text-gray-600">
-                  Climate change mitigation and sustainable environmental solutions
+                  Supporting startups and entrepreneurs by providing mentorship, funding opportunities, infrastructure, and business development services to accelerate innovation and commercialization.
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="p-6 hover:shadow-lg transition-shadow">
+            <Card className="text-center p-6 hover:shadow-lg transition-shadow">
               <CardContent className="pt-6">
-                <div className="w-12 h-12 bg-[#0d559e]/10 rounded-lg flex items-center justify-center mb-4">
-                  <Lightbulb className="w-6 h-6 text-[#0d559e]" />
+                <div className="w-16 h-16 bg-[#0d559e]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Globe className="w-8 h-8 text-[#0d559e]" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3">Technology Innovation</h3>
+                <h3 className="text-xl font-semibold mb-3">Collaboration</h3>
                 <p className="text-gray-600">
-                  Cutting-edge technologies and digital transformation solutions
+                  Building strategic partnerships with industry leaders, academic institutions, government agencies, and international organizations to foster innovation and knowledge exchange.
                 </p>
               </CardContent>
             </Card>
