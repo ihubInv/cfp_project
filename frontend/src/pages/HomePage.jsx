@@ -37,7 +37,7 @@ import digitalIndiaLogo from "../assets/digital_india_logo_0.png"
 import dbtLogo from "../assets/dbt.png"
 
 const HomePage = () => {
-  const [activeTab, setActiveTab] = useState("ongoing")
+  const [activeTab, setActiveTab] = useState("received")
   const [lastUpdateTime, setLastUpdateTime] = useState(new Date())
   const [countdown, setCountdown] = useState(30)
 
@@ -215,19 +215,7 @@ const HomePage = () => {
           {/* Tab Navigation */}
           <div className="mb-8">
             <div className="border-b border-gray-200">
-              <nav className="-mb-px flex space-x-8">
-                <button
-                  onClick={() => setActiveTab("ongoing")}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === "ongoing"
-                      ? "border-[#0d559e] text-[#0d559e]"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
-                >
-                  Ongoing Projects <span className="ml-2 bg-[#0d559e] text-white px-2 py-1 rounded-full text-xs">
-                    {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : (fundingStats?.ongoingProjects?.total || 0)}
-                  </span>
-                </button>
+              <nav className="-mb-px flex justify-center space-x-8">
                 <button
                   onClick={() => setActiveTab("received")}
                   className={`py-2 px-1 border-b-2 font-medium text-sm ${
@@ -268,86 +256,6 @@ const HomePage = () => {
 
           {/* Tab Content */}
           <div className="mt-8">
-            {activeTab === "ongoing" && (
-              <div className="space-y-6">
-                {/* Real-time Data Header */}
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-4 mb-2">
-                    <h3 className="text-xl font-semibold text-gray-900">Ongoing Projects</h3>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleManualRefresh}
-                      disabled={isLoading}
-                      className="flex items-center gap-2"
-                    >
-                      <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-                      Refresh
-                    </Button>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-gray-600">
-                      Last updated: {lastUpdateTime.toLocaleString('en-IN', {
-                        timeZone: 'Asia/Kolkata',
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit'
-                      })}
-                      <span className="ml-2 text-green-600 text-xs animate-pulse">● Live</span>
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      Data as of: {new Date().toLocaleDateString('en-IN', {
-                        timeZone: 'Asia/Kolkata',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })} | Next auto-refresh in: <span className="text-[#0d559e] font-medium">{countdown}s</span>
-                    </p>
-                  </div>
-                </div>
-
-                {/* Projects Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {isLoading ? (
-                    <div className="col-span-full flex justify-center py-12">
-                      <Loader2 className="w-8 h-8 animate-spin text-[#0d559e]" />
-                    </div>
-                  ) : fundingStats?.ongoingProjects?.programs?.length > 0 ? (
-                    fundingStats.ongoingProjects.programs.map((project, index) => (
-                      <Card key={index} className="hover:shadow-lg transition-all duration-300 hover:scale-105">
-                        <CardContent className="p-6">
-                          <div className="text-center">
-                            <div className="w-16 h-16 bg-gradient-to-br from-[#0d559e] to-[#004d8c] rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                              <span className="text-white font-bold text-lg">{project.count}</span>
-                            </div>
-                            <h3 className="text-sm font-medium text-gray-900 text-center leading-tight mb-2">
-                              {project._id || "Unknown Program"}
-                            </h3>
-                            <div className="text-xs text-gray-500">
-                              Last updated: {new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN', {
-                                timeZone: 'Asia/Kolkata',
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))
-                  ) : (
-                    <div className="col-span-full text-center py-12">
-                      <p className="text-gray-500">No ongoing projects data available</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
 
             {activeTab === "received" && (
               <div className="space-y-6">
