@@ -56,8 +56,8 @@ const ContactPage = () => {
       icon: MapPin,
       title: "Address",
       details: [
+        "IIT Mandi iHub and HCi Foundation",
         "North Campus, VPO Kamand",
-        "Near Mind Tree School",
         "Himachal Pradesh 175005, India"
       ]
     },
@@ -300,18 +300,27 @@ const ContactPage = () => {
 
           <Card>
             <CardContent className="p-0">
-              <div className="h-96 bg-gray-200 flex items-center justify-center">
-                <div className="text-center text-gray-500">
-                  <MapPin className="h-12 w-12 mx-auto mb-4" />
-                  <p className="text-lg font-medium">Interactive Map</p>
-                  <p className="text-sm">IIT Mandi North Campus, Kamand, HP</p>
-                </div>
+              <div className="h-96 w-full">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3365.1234567890!2d77.0020614!3d31.783495!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3904e5005ba8d29d%3A0x524f2d7c3093903d!2sIIT%20MANDI%20iHUB%20AND%20HCI%20FOUNDATION!5e0!3m2!1sen!2sin!4v1234567890123!5m2!1sen!2sin"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen=""
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="IIT Mandi iHub and HCi Foundation Location Map"
+                ></iframe>
               </div>
             </CardContent>
           </Card>
 
           <div className="mt-8 text-center">
-            <Button variant="outline" size="lg">
+            <Button 
+              variant="outline" 
+              size="lg"
+              onClick={() => window.open('https://www.google.com/maps/place/IIT+MANDI+iHUB+AND+HCI+FOUNDATION/@31.783495,76.9994865,740m/data=!3m2!1e3!4b1!4m6!3m5!1s0x3904e5005ba8d29d:0x524f2d7c3093903d!8m2!3d31.783495!4d77.0020614!16s%2Fg%2F11yg00vpyd?hl=en&entry=ttu&g_ep=EgoyMDI1MDkxNy4wIKXMDSoASAFQAw%3D%3D', '_blank')}
+            >
               <Globe className="h-4 w-4 mr-2" />
               Get Directions
             </Button>
