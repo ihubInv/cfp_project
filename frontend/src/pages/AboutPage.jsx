@@ -38,7 +38,7 @@ const AboutPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">Our Foundation</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">Technology Innovation Hub</h2>
               <p className="text-lg text-gray-600 mb-6">
                 IIT Mandi iHub and HCi Foundation (iHub) is a Technology Innovation Hub (TIH).
                 The Hub was incorporated on 24th September 2020.
