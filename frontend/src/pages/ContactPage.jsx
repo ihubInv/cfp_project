@@ -65,7 +65,6 @@ const ContactPage = () => {
       icon: Phone,
       title: "Phone",
       details: [
-        "+91-1905-237-XXX",
         "+91-1905-237-XXX"
       ]
     },
@@ -73,16 +72,15 @@ const ContactPage = () => {
       icon: Mail,
       title: "Email",
       details: [
-        "tih@ihubiitmandi.in",
-        "info@ihubiitmandi.in"
+        "tih@ihubiitmandi.in"
+        
       ]
     },
     {
       icon: Clock,
       title: "Office Hours",
       details: [
-        "Monday - Friday: 9:00 AM - 5:00 PM",
-        "Saturday: 9:00 AM - 1:00 PM",
+        "Monday - Saturday: 9:00 AM - 5:30 PM",
         "Sunday: Closed"
       ]
     }
@@ -107,12 +105,7 @@ const ContactPage = () => {
       phone: "+91-1905-237-003",
       description: "For general administrative inquiries"
     },
-    {
-      name: "Partnerships",
-      email: "partnerships@ihubiitmandi.in",
-      phone: "+91-1905-237-004",
-      description: "For industry collaborations and partnerships"
-    }
+    
   ]
 
   return (
