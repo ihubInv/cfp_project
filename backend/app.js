@@ -22,6 +22,7 @@ const manpowerTypeRoutes = require("./routes/manpowerTypes")
 const activityLogRoutes = require("./routes/activityLogs")
 const settingsRoutes = require("./routes/settings")
 const piProjectRoutes = require("./routes/piProjects")
+const onlineApplicationRoutes = require("./routes/onlineApplications")
 
 const app = express()
 
@@ -56,6 +57,7 @@ app.use("/api/manpower-types", manpowerTypeRoutes)
 app.use("/api/activity-logs", activityLogRoutes)
 app.use("/api/settings", settingsRoutes)
 app.use("/api/pi-projects", piProjectRoutes)
+app.use("/api/online-applications", onlineApplicationRoutes)
 
 // Health check
 app.get("/api/health", (req, res) => {

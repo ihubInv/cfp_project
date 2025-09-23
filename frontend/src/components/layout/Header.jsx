@@ -91,7 +91,7 @@ const Header = () => {
                         {/* Right Side Actions */}
                         <div className="hidden md:flex items-center space-x-4">
                             <Button variant="outline" size="sm" asChild>
-                                <Link to="/projects">Online Application</Link>
+                                <Link to="/online-application">Online Application</Link>
                             </Button>
 
                             {/* Login/User Menu */}
@@ -223,7 +223,7 @@ const Header = () => {
                                 ) : (
                                     <div className="space-y-2">
                                         <Button variant="outline" size="sm" className="w-full mb-2" asChild>
-                                            <Link to="/projects">Online Application</Link>
+                                            <Link to="/online-application">Online Application</Link>
                                         </Button>
                                         <div className="text-sm font-medium text-gray-900 mb-2">Login Options</div>
                                         <Button variant="outline" size="sm" className="w-full mb-2" asChild>

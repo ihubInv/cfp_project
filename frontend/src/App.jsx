@@ -20,6 +20,7 @@ import OversightPage from './pages/OversightPage'
 import ResearchSupportPage from './pages/ResearchSupportPage'
 import ContactPage from './pages/ContactPage'
 import UnauthorizedPage from './pages/UnauthorizedPage'
+import OnlineApplicationPage from './pages/OnlineApplicationPage'
 
 // Auth Pages
 import LoginForm from './components/auth/LoginForm'
@@ -42,6 +43,7 @@ import CategoryManagement from './pages/admin/CategoryManagement'
 import SchemeManagement from './pages/admin/SchemeManagement'
 import PIManagement from './pages/admin/PIManagement'
 import AdminPITracking from './pages/admin/AdminPITracking'
+import OnlineApplicationsAdmin from './pages/admin/OnlineApplicationsAdmin'
 
 // PI Pages
 import PIDashboard from './pages/PIDashboard'
@@ -71,6 +73,7 @@ function App() {
             <Route path="/oversight" element={<OversightPage />} />
             <Route path="/research-support" element={<ResearchSupportPage />} />
             <Route path="/contact" element={<ContactPage />} />
+            <Route path="/online-application" element={<OnlineApplicationPage />} />
             
             {/* Auth Routes */}
             <Route path="/login" element={<LoginForm />} />
@@ -101,6 +104,7 @@ function App() {
               <Route path="settings" element={<Settings />} />
               <Route path="pi-management" element={<PIManagement />} />
               <Route path="pi-tracking" element={<AdminPITracking />} />
+              <Route path="online-applications" element={<OnlineApplicationsAdmin />} />
             </Route>
             
             {/* PI Protected Routes */}

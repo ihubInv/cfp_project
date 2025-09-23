@@ -23,6 +23,7 @@ import {
     LogOut,
     UserPlus,
     ClipboardList,
+    Send,
 } from "lucide-react"
 
 const AdminLayout = () => {
@@ -44,6 +45,7 @@ const AdminLayout = () => {
         { name: "PI Management", href: "/admin/pi-management", icon: UserPlus },
         { name: "PI Tracking", href: "/admin/pi-tracking", icon: ClipboardList },
         { name: "Project Management", href: "/admin/projects", icon: FolderOpen },
+        { name: "Online Applications", href: "/admin/online-applications", icon: Send },
         { name: "Discipline Management", href: "/admin/categories", icon: Tag },
         { name: "Scheme Management", href: "/admin/schemes", icon: Award },
         { name: "Equipment", href: "/admin/equipment", icon: Database },
