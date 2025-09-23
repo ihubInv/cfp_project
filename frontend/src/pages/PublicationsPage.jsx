@@ -21,6 +21,7 @@ import {
   RefreshCw
 } from "lucide-react"
 import { useGetPublicPublicationsQuery } from "../store/api/publicPublicationApi"
+import { useGetDisciplinesQuery } from "../store/api/categoryApi"
 
 const PublicationsPage = () => {
   const [searchFilters, setSearchFilters] = useState({
@@ -32,6 +33,7 @@ const PublicationsPage = () => {
 
   const [currentPage, setCurrentPage] = useState(1)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [showOnlyAvailableDisciplines, setShowOnlyAvailableDisciplines] = useState(true)
 
   // Fetch publications from API with real-time updates
   const { 
@@ -49,6 +51,13 @@ const PublicationsPage = () => {
     discipline: searchFilters.discipline !== "all" ? searchFilters.discipline : undefined,
   })
 
+  // Fetch disciplines from admin API
+  const { 
+    data: disciplinesData, 
+    isLoading: disciplinesLoading,
+    error: disciplinesError 
+  } = useGetDisciplinesQuery()
+
   const publications = publicationsData?.publications || []
   const totalPages = publicationsData?.totalPages || 0
   const total = publicationsData?.total || 0
@@ -61,20 +70,50 @@ const PublicationsPage = () => {
     "Accepted"
   ]
 
-  const disciplines = [
-    "Engineering Sciences",
-    "Physical Sciences",
-    "Chemical Sciences",
-    "Mathematical Sciences",
-    "Life Sciences",
-    "Earth Sciences",
-    "Computer Sciences",
-    "Materials Sciences",
-    "Agricultural Sciences",
-    "Medical Sciences",
-    "Social Sciences",
-    "Humanities"
-  ]
+  // Get unique disciplines from API or fallback to default list
+  const disciplines = React.useMemo(() => {
+    if (disciplinesData?.categories) {
+      // Extract unique discipline names from API data
+      const uniqueDisciplines = [...new Set(disciplinesData.categories.map(cat => cat.name))]
+        .filter(name => name && name.trim() !== '') // Filter out empty/null names
+        .sort() // Sort alphabetically
+      
+      // Debug log to see what disciplines are being loaded
+      console.log('Loaded disciplines from API:', uniqueDisciplines)
+      return uniqueDisciplines
+    }
+    
+    // Fallback to default list if no API data
+    console.log('Using fallback disciplines list')
+    return [
+      "Engineering Sciences",
+      "Physical Sciences",
+      "Chemical Sciences",
+      "Mathematical Sciences",
+      "Life Sciences",
+      "Earth Sciences",
+      "Computer Sciences",
+      "Materials Sciences",
+      "Agricultural Sciences",
+      "Medical Sciences",
+      "Social Sciences",
+      "Humanities"
+    ]
+  }, [disciplinesData])
+
+  // Get unique disciplines that actually exist in publications data
+  const availableDisciplines = React.useMemo(() => {
+    if (publications.length > 0) {
+      // Extract unique disciplines from actual publications
+      const pubDisciplines = [...new Set(publications.map(pub => pub.projectDiscipline))]
+        .filter(discipline => discipline && discipline.trim() !== '')
+        .sort()
+      
+      console.log('Available disciplines in publications:', pubDisciplines)
+      return pubDisciplines
+    }
+    return disciplines // Fallback to all disciplines if no publications loaded
+  }, [publications, disciplines])
 
   const years = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i)
 
@@ -221,20 +260,58 @@ const PublicationsPage = () => {
 
                 {/* Discipline Filter */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Discipline</label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium text-gray-700">Discipline</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="showOnlyAvailable"
+                        checked={showOnlyAvailableDisciplines}
+                        onChange={(e) => setShowOnlyAvailableDisciplines(e.target.checked)}
+                        className="w-3 h-3"
+                      />
+                      <label htmlFor="showOnlyAvailable" className="text-xs text-gray-600">
+                        Only available
+                      </label>
+                    </div>
+                  </div>
                   <Select value={searchFilters.discipline} onValueChange={(value) => handleFilterChange('discipline', value)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select Discipline" />
+                      <SelectValue placeholder={disciplinesLoading ? "Loading disciplines..." : "Select Discipline"} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Disciplines</SelectItem>
-                      {disciplines.map(discipline => (
-                        <SelectItem key={discipline} value={discipline}>
-                          {discipline}
+                      {disciplinesLoading ? (
+                        <SelectItem value="loading" disabled>
+                          <div className="flex items-center gap-2">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Loading disciplines...
+                          </div>
                         </SelectItem>
-                      ))}
+                      ) : disciplinesError ? (
+                        <SelectItem value="error" disabled>
+                          Error loading disciplines
+                        </SelectItem>
+                      ) : (
+                        (showOnlyAvailableDisciplines ? availableDisciplines : disciplines).map(discipline => (
+                          <SelectItem key={discipline} value={discipline}>
+                            {discipline}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
+                  {disciplinesError && (
+                    <p className="text-xs text-red-600">
+                      Failed to load disciplines. Using default list.
+                    </p>
+                  )}
+                  <p className="text-xs text-gray-500">
+                    {showOnlyAvailableDisciplines 
+                      ? `Showing ${availableDisciplines.length} disciplines with publications`
+                      : `Showing ${disciplines.length} total disciplines`
+                    }
+                  </p>
                 </div>
               </div>
 
