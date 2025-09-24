@@ -49,8 +49,8 @@ Before running this application, make sure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/your-repository-name.git
-cd your-repository-name
+git clone https://github.com/ihubInv/cfp_project.git
+cd cfp_project
 ```
 
 ### 2. Backend Setup
