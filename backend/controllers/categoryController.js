@@ -1,5 +1,5 @@
 const Category = require("../models/Category")
-const ActivityLog = require("../models/ActivityLog")
+const ActivityLog = require("../models/Activitylog")
 
 // Get all disciplines
 const getAllDisciplines = async (req, res) => {

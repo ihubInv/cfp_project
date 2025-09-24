@@ -1,5 +1,5 @@
 const Scheme = require("../models/Scheme")
-const ActivityLog = require("../models/ActivityLog")
+const ActivityLog = require("../models/Activitylog")
 
 // Get all schemes
 const getAllSchemes = async (req, res) => {

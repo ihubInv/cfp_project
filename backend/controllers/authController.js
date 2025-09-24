@@ -1,5 +1,5 @@
 const User = require("../models/User")
-const ActivityLog = require("../models/ActivityLog")
+const ActivityLog = require("../models/Activitylog")
 const { generateAccessToken, generateRefreshToken, verifyRefreshToken } = require("../utils/jwt")
 
 const register = async (req, res) => {

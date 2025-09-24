@@ -1,6 +1,6 @@
 const mongoose = require("mongoose")
 const OnlineApplication = require("../models/OnlineApplication")
-const ActivityLog = require("../models/ActivityLog")
+const ActivityLog = require("../models/Activitylog")
 const path = require("path")
 const fs = require("fs")
 

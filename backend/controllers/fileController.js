@@ -1,7 +1,7 @@
 const path = require("path")
 const fs = require("fs")
 const Project = require("../models/Project")
-const ActivityLog = require("../models/ActivityLog")
+const ActivityLog = require("../models/Activitylog")
 
 const uploadProjectFiles = async (req, res) => {
     try {

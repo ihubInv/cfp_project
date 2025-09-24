@@ -1,5 +1,5 @@
 const Project = require("../models/Project")
-const ActivityLog = require("../models/ActivityLog")
+const ActivityLog = require("../models/Activitylog")
 const Equipment = require("../models/Equipment")
 
 // Public endpoints
