@@ -24,6 +24,7 @@ import {
 import { useGetPublicProjectsQuery } from "../store/api/publicApi"
 import { useGetDisciplinesQuery } from "../store/api/categoryApi"
 import { useGetSchemesQuery } from "../store/api/schemeApi"
+import { formatCurrencyInCrores } from "../lib/utils"
 
 const ProjectsPage = () => {
   const [searchFilters, setSearchFilters] = useState({
@@ -66,14 +67,6 @@ const ProjectsPage = () => {
   // Fetch schemes
   const { data: schemes } = useGetSchemesQuery()
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount)
-  }
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -330,7 +323,7 @@ const ProjectsPage = () => {
                               <TableCell>
                                 <div className="text-sm">
                                   <p className="font-medium text-gray-900">
-                                    {formatCurrency(project.budget?.totalAmount || project.funding?.approvedBudget || project.totalCost || 0)}
+                                    {formatCurrencyInCrores(project.budget?.totalAmount || project.funding?.approvedBudget || project.totalCost || 0)}
                                   </p>
                                   <p className="text-xs text-gray-500">
                                     {project.funding?.fundingStatus || ""}

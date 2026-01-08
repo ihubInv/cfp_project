@@ -5,7 +5,7 @@ const projectSchema = new mongoose.Schema(
         // Basic Project Fields
         title: {
             type: String,
-            required: true,
+            required: false,
             text: true,
         },
         fileNumber: {
@@ -15,26 +15,26 @@ const projectSchema = new mongoose.Schema(
         },
         discipline: {
             type: String,
-            required: true,
+            required: false,
         },
         scheme: {
             type: String,
-            required: true,
+            required: false,
         },
         projectSummary: {
             type: String,
-            required: true,
+            required: false,
             text: true,
         },
         
         // Multiple Principal Investigators
         principalInvestigators: [{
-            name: { type: String, required: true },
-            designation: { type: String, required: true },
-            email: { type: String, required: true },
-            instituteName: { type: String, required: true },
-            department: { type: String, required: true },
-            instituteAddress: { type: String, required: true },
+            name: { type: String, required: false },
+            designation: { type: String, required: false },
+            email: { type: String, required: false },
+            instituteName: { type: String, required: false },
+            department: { type: String, required: false },
+            instituteAddress: { type: String, required: false },
         }],
         
         // Multiple Co-Principal Investigators
@@ -68,31 +68,31 @@ const projectSchema = new mongoose.Schema(
         
         // Equipment Sanctioned
         equipmentSanctioned: [{
-            genericName: { type: String, required: true },
-            make: { type: String, required: true },
-            model: { type: String, required: true },
-            priceInr: { type: Number, required: true },
+            genericName: { type: String, required: false },
+            make: { type: String, required: false },
+            model: { type: String, required: false },
+            priceInr: { type: Number, required: false },
             invoiceUpload: { type: String }, // File path or URL
         }],
         
         // Manpower Sanctioned
         manpowerSanctioned: [{
-            manpowerType: { type: String, required: true },
-            number: { type: Number, required: true },
+            manpowerType: { type: String, required: false },
+            number: { type: Number, required: false },
         }],
         
         // Publications
         publications: [{
-            name: { type: String, required: true },
-            publicationDetail: { type: String, required: true },
-            status: { type: String, required: true },
+            name: { type: String, required: false },
+            publicationDetail: { type: String, required: false },
+            status: { type: String, required: false },
         }],
         
         // Budget Information
         budget: {
-            sanctionYear: { type: Number, required: true },
-            date: { type: Date, required: true },
-            totalAmount: { type: Number, required: true },
+            sanctionYear: { type: Number, required: false },
+            date: { type: Date, required: false },
+            totalAmount: { type: Number, required: false },
         },
         
         // Patent Details

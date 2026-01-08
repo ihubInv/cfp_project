@@ -9,19 +9,12 @@ import { Separator } from "../components/ui/separator"
 import { Calendar, MapPin, DollarSign, User, Building, ArrowLeft, Mail, Clock, Award, Target, BookOpen, Users, FileText, Briefcase, TrendingUp } from "lucide-react"
 import Header from "../components/layout/Header"
 import Footer from "../components/layout/Footer"
+import { formatCurrencyInCrores } from "../lib/utils"
 
 const ProjectDetailPage = () => {
   const { id } = useParams()
   const { data: project, isLoading, error } = useGetPublicProjectByIdQuery(id)
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount)
-  }
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -114,7 +107,7 @@ const ProjectDetailPage = () => {
               <div className="text-center">
                 <p className="text-sm text-gray-600 mb-2">Project Cost</p>
                 <h4 className="text-lg font-semibold text-gray-900">
-                  {formatCurrency(project.budget?.totalAmount || project.funding?.approvedBudget || 0)}
+                  {formatCurrencyInCrores(project.budget?.totalAmount || project.funding?.approvedBudget || 0)}
                 </h4>
               </div>
 

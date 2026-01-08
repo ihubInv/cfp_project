@@ -52,17 +52,25 @@ const EquipmentManagement = () => {
   const [formError, setFormError] = useState("")
 
   const { data, isLoading, error } = useGetEquipmentQuery(filters)
+  // Fetch all equipment for stats (without pagination)
+  const { data: statsData } = useGetEquipmentQuery({ limit: 10000, page: 1 })
   const [createEquipment, { isLoading: isCreating }] = useCreateEquipmentMutation()
   const [updateEquipment, { isLoading: isUpdating }] = useUpdateEquipmentMutation()
   const [deleteEquipment, { isLoading: isDeleting }] = useDeleteEquipmentMutation()
   const [syncProjectEquipment, { isLoading: isSyncing }] = useSyncProjectEquipmentMutation()
 
   const handleFilterChange = (key, value) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: value === "" ? undefined : value,
-      page: 1,
-    }))
+    setFilters((prev) => {
+      const newFilters = {
+        ...prev,
+        [key]: value === "" ? undefined : value,
+      }
+      // Only reset page to 1 if changing filters other than page itself
+      if (key !== "page") {
+        newFilters.page = 1
+      }
+      return newFilters
+    })
   }
 
   const handleInputChange = (field, value) => {
@@ -263,7 +271,7 @@ const EquipmentManagement = () => {
             <Database className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data?.equipment?.length || 0}</div>
+            <div className="text-2xl font-bold">{statsData?.total || statsData?.equipment?.length || 0}</div>
             <p className="text-xs text-muted-foreground">All items</p>
           </CardContent>
         </Card>
@@ -275,7 +283,7 @@ const EquipmentManagement = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {data?.equipment?.filter(eq => eq.status === "Available").length || 0}
+              {statsData?.equipment?.filter(eq => eq.status === "Available").length || 0}
             </div>
             <p className="text-xs text-muted-foreground">Ready to use</p>
           </CardContent>
@@ -288,7 +296,7 @@ const EquipmentManagement = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {data?.equipment?.filter(eq => eq.status === "In Use").length || 0}
+              {statsData?.equipment?.filter(eq => eq.status === "In Use").length || 0}
             </div>
             <p className="text-xs text-muted-foreground">Currently in use</p>
           </CardContent>
@@ -301,7 +309,7 @@ const EquipmentManagement = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {data?.equipment?.filter(eq => eq.status === "Maintenance").length || 0}
+              {statsData?.equipment?.filter(eq => eq.status === "Maintenance").length || 0}
             </div>
             <p className="text-xs text-muted-foreground">Under maintenance</p>
           </CardContent>

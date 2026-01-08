@@ -91,12 +91,22 @@ const ProjectManagement = () => {
   }
 
   const formatCurrency = (amount) => {
+    // For admin view, show in standard INR format
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount || 0)
+  }
+  
+  const formatCurrencyInCrores = (amount) => {
+    if (!amount || amount === 0) return "₹0 Cr"
+    const crores = amount / 10000000
+    return `₹${crores.toLocaleString('en-IN', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })} Cr`
   }
 
 
@@ -231,7 +241,7 @@ const ProjectManagement = () => {
                           <div className="text-gray-500">{project.principalInvestigators?.[0]?.department || project.pi?.department || ''}</div>
                         </div>
                       </TableCell>
-                      <TableCell>{formatCurrency(project.budget?.totalAmount || 0)}</TableCell>
+                      <TableCell>{formatCurrencyInCrores(project.budget?.totalAmount || 0)}</TableCell>
                       <TableCell>{project.budget?.sanctionYear || 'N/A'}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
@@ -344,7 +354,7 @@ const ProjectManagement = () => {
                                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
                                     <div>
                                       <p className="text-sm font-medium">Total Amount</p>
-                                      <p className="font-medium">{formatCurrency(project.budget?.totalAmount || 0)}</p>
+                                      <p className="font-medium">{formatCurrencyInCrores(project.budget?.totalAmount || 0)}</p>
                                     </div>
                                     <div>
                                       <p className="text-sm font-medium">Sanction Year</p>

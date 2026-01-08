@@ -85,7 +85,7 @@ const ManpowerTypeManagement = () => {
   }
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to deactivate this manpower type?")) {
+    if (window.confirm("Are you sure you want to delete this manpower type? This action cannot be undone.")) {
       try {
         await deleteManpowerType(id).unwrap()
       } catch (error) {
@@ -295,7 +295,7 @@ const ManpowerTypeManagement = () => {
                         size="sm"
                         onClick={() => handleDelete(manpowerType._id)}
                         disabled={isDeleting}
-                        title="Deactivate manpower type"
+                        title="Delete manpower type"
                         className="text-red-600 hover:text-red-700"
                       >
                         <Trash2 className="h-4 w-4" />

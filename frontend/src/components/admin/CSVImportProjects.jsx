@@ -104,51 +104,43 @@ const CSVImportProjects = ({ onClose, onSuccess }) => {
   const validateProjectData = (row, index) => {
     const errors = []
     
-    // Required fields validation
-    if (!row.title?.trim()) errors.push('Title is required')
-    if (!row.discipline?.trim()) errors.push('Discipline is required')
-    if (!row.scheme?.trim()) errors.push('Scheme is required')
-    if (!row.projectSummary?.trim()) errors.push('Project Summary is required')
-    if (!row.piName?.trim()) errors.push('Principal Investigator Name is required')
-    if (!row.piEmail?.trim()) errors.push('Principal Investigator Email is required')
-    if (!row.piInstitute?.trim()) errors.push('Principal Investigator Institute is required')
-    if (!row.totalAmount || isNaN(parseFloat(row.totalAmount))) errors.push('Total Amount must be a valid number')
+    // Only validate format, not required fields - all fields are optional
     
-    // Email validation
-    if (row.piEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.piEmail)) {
+    // Email format validation (if provided)
+    if (row.piEmail && row.piEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.piEmail)) {
       errors.push('Invalid PI email format')
     }
-    if (row.coPiEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.coPiEmail)) {
+    if (row.coPiEmail && row.coPiEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.coPiEmail)) {
       errors.push('Invalid Co-PI email format')
     }
     
-    // Date validation
-    if (row.sanctionDate && isNaN(Date.parse(row.sanctionDate))) {
+    // Date format validation (if provided)
+    if (row.sanctionDate && row.sanctionDate.trim() && isNaN(Date.parse(row.sanctionDate))) {
       errors.push('Invalid sanction date format')
     }
     
-    // Equipment validation
-    if (row.equipment1Name && (!row.equipment1Make || !row.equipment1Model || !row.equipment1Price || isNaN(parseFloat(row.equipment1Price)))) {
-      errors.push('Equipment 1: All fields (name, make, model, price) are required')
+    // Budget amount validation (if provided, must be valid number)
+    if (row.totalAmount && row.totalAmount.trim() && isNaN(parseFloat(row.totalAmount))) {
+      errors.push('Total Amount must be a valid number if provided')
     }
-    if (row.equipment2Name && (!row.equipment2Make || !row.equipment2Model || !row.equipment2Price || isNaN(parseFloat(row.equipment2Price)))) {
-      errors.push('Equipment 2: All fields (name, make, model, price) are required')
-    }
-    
-    // Manpower validation
-    if (row.manpower1Type && (!row.manpower1Number || isNaN(parseInt(row.manpower1Number)))) {
-      errors.push('Manpower 1: Type and number are required')
-    }
-    if (row.manpower2Type && (!row.manpower2Number || isNaN(parseInt(row.manpower2Number)))) {
-      errors.push('Manpower 2: Type and number are required')
+    if (row.totalAmount && !isNaN(parseFloat(row.totalAmount)) && parseFloat(row.totalAmount) < 0) {
+      errors.push('Total Amount must be a positive number if provided')
     }
     
-    // Publication validation
-    if (row.publication1Name && (!row.publication1Detail || !row.publication1Status)) {
-      errors.push('Publication 1: Name, detail, and status are required')
+    // Equipment validation - only validate if partial data is provided
+    if (row.equipment1Name && row.equipment1Name.trim() && (!row.equipment1Price || isNaN(parseFloat(row.equipment1Price)))) {
+      errors.push('Equipment 1: Price must be a valid number if equipment name is provided')
     }
-    if (row.publication2Name && (!row.publication2Detail || !row.publication2Status)) {
-      errors.push('Publication 2: Name, detail, and status are required')
+    if (row.equipment2Name && row.equipment2Name.trim() && (!row.equipment2Price || isNaN(parseFloat(row.equipment2Price)))) {
+      errors.push('Equipment 2: Price must be a valid number if equipment name is provided')
+    }
+    
+    // Manpower validation - only validate if partial data is provided
+    if (row.manpower1Type && row.manpower1Type.trim() && (!row.manpower1Number || isNaN(parseInt(row.manpower1Number)))) {
+      errors.push('Manpower 1: Number must be a valid integer if manpower type is provided')
+    }
+    if (row.manpower2Type && row.manpower2Type.trim() && (!row.manpower2Number || isNaN(parseInt(row.manpower2Number)))) {
+      errors.push('Manpower 2: Number must be a valid integer if manpower type is provided')
     }
     
     return errors
@@ -185,18 +177,18 @@ const CSVImportProjects = ({ onClose, onSuccess }) => {
           const projectData = {
             title: row.title?.trim(),
             fileNumber: row.fileNumber?.trim() || `PROJ-${Date.now()}-${i}`,
-            discipline: row.discipline?.trim(),
-            scheme: row.scheme?.trim(),
-            projectSummary: row.projectSummary?.trim(),
+            discipline: row.discipline?.trim() || '',
+            scheme: row.scheme?.trim() || '',
+            projectSummary: row.projectSummary?.trim() || '',
             validationStatus: row.status?.trim() || 'Ongoing',
-            principalInvestigators: [{
+            principalInvestigators: row.piName?.trim() ? [{
               name: row.piName?.trim(),
-              email: row.piEmail?.trim(),
-              designation: row.piDesignation?.trim() || 'Professor',
-              instituteName: row.piInstitute?.trim(),
-              department: row.piDepartment?.trim() || 'General',
+              email: row.piEmail?.trim() || '',
+              designation: row.piDesignation?.trim() || '',
+              instituteName: row.piInstitute?.trim() || '',
+              department: row.piDepartment?.trim() || '',
               instituteAddress: row.piAddress?.trim() || ''
-            }],
+            }] : [],
             coPrincipalInvestigators: row.coPiName?.trim() ? [{
               name: row.coPiName?.trim(),
               email: row.coPiEmail?.trim() || '',
@@ -242,8 +234,8 @@ const CSVImportProjects = ({ onClose, onSuccess }) => {
               }] : [])
             ],
             budget: {
-              totalAmount: parseFloat(row.totalAmount),
-              sanctionYear: parseInt(row.sanctionYear) || new Date().getFullYear(),
+              totalAmount: row.totalAmount ? parseFloat(row.totalAmount) : 0,
+              sanctionYear: row.sanctionYear ? parseInt(row.sanctionYear) : new Date().getFullYear(),
               date: row.sanctionDate || new Date().toISOString()
             },
             patentDetail: row.patentDetail?.trim() || ''

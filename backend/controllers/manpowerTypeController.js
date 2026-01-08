@@ -169,12 +169,12 @@ const deleteManpowerType = async (req, res) => {
             })
         }
 
-        // Instead of hard delete, mark as inactive
-        await ManpowerType.findByIdAndUpdate(id, { isActive: false })
+        // Actually delete the record from the database
+        await ManpowerType.findByIdAndDelete(id)
 
         res.json({
             success: true,
-            message: "Manpower type deactivated successfully",
+            message: "Manpower type deleted successfully",
         })
     } catch (error) {
         console.error("Error deleting manpower type:", error)

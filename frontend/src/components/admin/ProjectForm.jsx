@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
 import { Badge } from "../ui/badge"
 import { X, Plus, Save, FileText, User, Building, Wrench, Users, BookOpen, DollarSign } from "lucide-react"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table"
 import { useGetDisciplinesQuery } from "../../store/api/categoryApi"
 import { useGetSchemesQuery } from "../../store/api/schemeApi"
 import { useGetAllManpowerTypesQuery } from "../../store/api/manpowerTypeApi"
@@ -200,48 +201,30 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
   const handleSubmit = (e) => {
     e.preventDefault()
     
-    // Frontend validation
+    // Frontend validation - only validate format, not required fields
     const errors = []
     
-    if (!formData.title.trim()) {
-      errors.push("Project title is required")
-    }
-    
-    if (!formData.discipline) {
-      errors.push("Discipline is required")
-    }
-    
-    if (!formData.scheme) {
-      errors.push("Scheme is required")
-    }
-    
-    if (!formData.projectSummary.trim()) {
-      errors.push("Project summary is required")
-    }
-    
-    if (!formData.principalInvestigators || formData.principalInvestigators.length === 0) {
-      errors.push("At least one principal investigator is required")
-    } else {
+    // Email format validation (if provided)
+    if (formData.principalInvestigators && formData.principalInvestigators.length > 0) {
       formData.principalInvestigators.forEach((pi, index) => {
-        if (!pi.name.trim()) errors.push(`PI ${index + 1}: Name is required`)
-        if (!pi.designation.trim()) errors.push(`PI ${index + 1}: Designation is required`)
-        if (!pi.email.trim()) errors.push(`PI ${index + 1}: Email is required`)
-        if (!pi.instituteName.trim()) errors.push(`PI ${index + 1}: Institute name is required`)
-        if (!pi.department.trim()) errors.push(`PI ${index + 1}: Department is required`)
-        if (!pi.instituteAddress.trim()) errors.push(`PI ${index + 1}: Institute address is required`)
+        if (pi.email && pi.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(pi.email)) {
+          errors.push(`PI ${index + 1}: Invalid email format`)
+        }
       })
     }
     
-    if (!formData.budget.sanctionYear) {
-      errors.push("Budget sanction year is required")
+    // Co-PI email format validation (if provided)
+    if (formData.coPrincipalInvestigators && formData.coPrincipalInvestigators.length > 0) {
+      formData.coPrincipalInvestigators.forEach((coPI, index) => {
+        if (coPI.email && coPI.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(coPI.email)) {
+          errors.push(`Co-PI ${index + 1}: Invalid email format`)
+        }
+      })
     }
     
-    if (!formData.budget.date) {
-      errors.push("Budget date is required")
-    }
-    
-    if (!formData.budget.totalAmount || formData.budget.totalAmount <= 0) {
-      errors.push("Budget total amount is required and must be greater than 0")
+    // Budget amount validation (if provided, must be positive)
+    if (formData.budget.totalAmount && formData.budget.totalAmount <= 0) {
+      errors.push("Budget total amount must be greater than 0 if provided")
     }
     
     if (errors.length > 0) {
@@ -339,13 +322,12 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Title *</Label>
+              <Label htmlFor="title">Title</Label>
               <Input
                 id="title"
                 value={formData.title}
                 onChange={(e) => handleInputChange("title", e.target.value)}
                 placeholder="Enter project title"
-                required
               />
             </div>
             <div className="space-y-2">
@@ -360,7 +342,7 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="discipline">Select Discipline *</Label>
+            <Label htmlFor="discipline">Select Discipline</Label>
             <Select value={formData.discipline} onValueChange={(value) => handleInputChange("discipline", value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select discipline" />
@@ -376,7 +358,7 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="scheme">Select Scheme *</Label>
+            <Label htmlFor="scheme">Select Scheme</Label>
             <Select value={formData.scheme} onValueChange={(value) => handleInputChange("scheme", value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select scheme" />
@@ -408,7 +390,7 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="projectSummary">Project Summary *</Label>
+            <Label htmlFor="projectSummary">Project Summary</Label>
             <Textarea
               id="projectSummary"
               value={formData.projectSummary}
@@ -443,95 +425,92 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
             Add one or more principal investigators for this project
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {formData.principalInvestigators.map((pi, index) => (
-            <div key={index} className="border rounded-lg p-4 space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="font-medium text-gray-900">PI #{index + 1}</h4>
-                {formData.principalInvestigators.length > 1 && (
-                  <Button
-                    type="button"
-                    onClick={() => handleArrayRemove('principalInvestigators', index)}
-                    variant="ghost"
-                    size="sm"
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor={`pi-${index}-name`}>Name *</Label>
-                  <Input
-                    id={`pi-${index}-name`}
-                    value={pi.name}
-                    onChange={(e) => handlePIChange("name", e.target.value, index)}
-                    placeholder="Enter PI name"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor={`pi-${index}-designation`}>Designation *</Label>
-                  <Input
-                    id={`pi-${index}-designation`}
-                    value={pi.designation}
-                    onChange={(e) => handlePIChange("designation", e.target.value, index)}
-                    placeholder="Enter designation"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor={`pi-${index}-email`}>Email *</Label>
-                <Input
-                  id={`pi-${index}-email`}
-                  type="email"
-                  value={pi.email}
-                  onChange={(e) => handlePIChange("email", e.target.value, index)}
-                  placeholder="Enter email address"
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor={`pi-${index}-instituteName`}>Institute Name *</Label>
-                  <Input
-                    id={`pi-${index}-instituteName`}
-                    value={pi.instituteName}
-                    onChange={(e) => handlePIChange("instituteName", e.target.value, index)}
-                    placeholder="Enter institute name"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor={`pi-${index}-department`}>Department *</Label>
-                  <Input
-                    id={`pi-${index}-department`}
-                    value={pi.department}
-                    onChange={(e) => handlePIChange("department", e.target.value, index)}
-                    placeholder="Enter department"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor={`pi-${index}-instituteAddress`}>Institute Address *</Label>
-                <Textarea
-                  id={`pi-${index}-instituteAddress`}
-                  value={pi.instituteAddress}
-                  onChange={(e) => handlePIChange("instituteAddress", e.target.value, index)}
-                  placeholder="Enter institute address"
-                  rows={2}
-                  required
-                />
-              </div>
-            </div>
-          ))}
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[150px]">Name</TableHead>
+                  <TableHead className="w-[150px]">Designation</TableHead>
+                  <TableHead className="w-[200px]">Email</TableHead>
+                  <TableHead className="w-[180px]">Institute Name</TableHead>
+                  <TableHead className="w-[150px]">Department</TableHead>
+                  <TableHead className="w-[200px]">Institute Address</TableHead>
+                  <TableHead className="w-[80px]">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {formData.principalInvestigators.map((pi, index) => (
+                  <TableRow key={index}>
+                    <TableCell>
+                      <Input
+                        value={pi.name || ""}
+                        onChange={(e) => handlePIChange("name", e.target.value, index)}
+                        placeholder="Enter name"
+                        className="w-full"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Input
+                        value={pi.designation || ""}
+                        onChange={(e) => handlePIChange("designation", e.target.value, index)}
+                        placeholder="Enter designation"
+                        className="w-full"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Input
+                        type="email"
+                        value={pi.email || ""}
+                        onChange={(e) => handlePIChange("email", e.target.value, index)}
+                        placeholder="Enter email"
+                        className="w-full"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Input
+                        value={pi.instituteName || ""}
+                        onChange={(e) => handlePIChange("instituteName", e.target.value, index)}
+                        placeholder="Enter institute"
+                        className="w-full"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Input
+                        value={pi.department || ""}
+                        onChange={(e) => handlePIChange("department", e.target.value, index)}
+                        placeholder="Enter department"
+                        className="w-full"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Input
+                        value={pi.instituteAddress || ""}
+                        onChange={(e) => handlePIChange("instituteAddress", e.target.value, index)}
+                        placeholder="Enter address"
+                        className="w-full"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      {formData.principalInvestigators.length > 1 ? (
+                        <Button
+                          type="button"
+                          onClick={() => handleArrayRemove('principalInvestigators', index)}
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      ) : (
+                        <span className="text-gray-400 text-xs">Required</span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
@@ -558,7 +537,7 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
             Optional co-principal investigators for this project
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent>
           {formData.coPrincipalInvestigators.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <Users className="h-12 w-12 mx-auto mb-4 text-gray-400" />
@@ -566,86 +545,87 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
               <p className="text-sm">Click "Add Co-PI" to add one or more co-principal investigators.</p>
             </div>
           ) : (
-            formData.coPrincipalInvestigators.map((coPI, index) => (
-              <div key={index} className="border rounded-lg p-4 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-medium text-gray-900">Co-PI #{index + 1}</h4>
-                  <Button
-                    type="button"
-                    onClick={() => handleArrayRemove('coPrincipalInvestigators', index)}
-                    variant="ghost"
-                    size="sm"
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor={`copi-${index}-name`}>Name</Label>
-                    <Input
-                      id={`copi-${index}-name`}
-                      value={coPI.name}
-                      onChange={(e) => handleCoPIChange("name", e.target.value, index)}
-                      placeholder="Enter co-PI name"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor={`copi-${index}-designation`}>Designation</Label>
-                    <Input
-                      id={`copi-${index}-designation`}
-                      value={coPI.designation}
-                      onChange={(e) => handleCoPIChange("designation", e.target.value, index)}
-                      placeholder="Enter designation"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor={`copi-${index}-email`}>Email</Label>
-                  <Input
-                    id={`copi-${index}-email`}
-                    type="email"
-                    value={coPI.email}
-                    onChange={(e) => handleCoPIChange("email", e.target.value, index)}
-                    placeholder="Enter email address"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor={`copi-${index}-instituteName`}>Institute Name</Label>
-                    <Input
-                      id={`copi-${index}-instituteName`}
-                      value={coPI.instituteName}
-                      onChange={(e) => handleCoPIChange("instituteName", e.target.value, index)}
-                      placeholder="Enter institute name"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor={`copi-${index}-department`}>Department</Label>
-                    <Input
-                      id={`copi-${index}-department`}
-                      value={coPI.department}
-                      onChange={(e) => handleCoPIChange("department", e.target.value, index)}
-                      placeholder="Enter department"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor={`copi-${index}-instituteAddress`}>Institute Address</Label>
-                  <Textarea
-                    id={`copi-${index}-instituteAddress`}
-                    value={coPI.instituteAddress}
-                    onChange={(e) => handleCoPIChange("instituteAddress", e.target.value, index)}
-                    placeholder="Enter institute address"
-                    rows={2}
-                  />
-                </div>
-              </div>
-            ))
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[150px]">Name</TableHead>
+                    <TableHead className="w-[150px]">Designation</TableHead>
+                    <TableHead className="w-[200px]">Email</TableHead>
+                    <TableHead className="w-[180px]">Institute Name</TableHead>
+                    <TableHead className="w-[150px]">Department</TableHead>
+                    <TableHead className="w-[200px]">Institute Address</TableHead>
+                    <TableHead className="w-[80px]">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {formData.coPrincipalInvestigators.map((coPI, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <Input
+                          value={coPI.name || ""}
+                          onChange={(e) => handleCoPIChange("name", e.target.value, index)}
+                          placeholder="Enter name"
+                          className="w-full"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          value={coPI.designation || ""}
+                          onChange={(e) => handleCoPIChange("designation", e.target.value, index)}
+                          placeholder="Enter designation"
+                          className="w-full"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="email"
+                          value={coPI.email || ""}
+                          onChange={(e) => handleCoPIChange("email", e.target.value, index)}
+                          placeholder="Enter email"
+                          className="w-full"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          value={coPI.instituteName || ""}
+                          onChange={(e) => handleCoPIChange("instituteName", e.target.value, index)}
+                          placeholder="Enter institute"
+                          className="w-full"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          value={coPI.department || ""}
+                          onChange={(e) => handleCoPIChange("department", e.target.value, index)}
+                          placeholder="Enter department"
+                          className="w-full"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          value={coPI.instituteAddress || ""}
+                          onChange={(e) => handleCoPIChange("instituteAddress", e.target.value, index)}
+                          placeholder="Enter address"
+                          className="w-full"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          type="button"
+                          onClick={() => handleArrayRemove('coPrincipalInvestigators', index)}
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -653,293 +633,348 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
       {/* Equipment Sanctioned */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <Wrench className="h-5 w-5 mr-2" />
-            Equipment Sanctioned
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center">
+              <Wrench className="h-5 w-5 mr-2" />
+              Equipment Sanctioned
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => handleArrayAdd("equipmentSanctioned", { ...newEquipment })}
+              className="bg-[#0d559e] text-white hover:bg-[#0d559e]/90"
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Add Equipment
+            </Button>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {formData.equipmentSanctioned.map((equipment, index) => (
-            <div key={index} className="border rounded-lg p-4 space-y-4">
-              <div className="flex justify-between items-center">
-                <h4 className="font-medium">Equipment {index + 1}</h4>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleArrayRemove("equipmentSanctioned", index)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Generic Name</Label>
-                  <Input
-                    value={equipment.genericName}
-                    onChange={(e) => {
-                      const newEquipment = [...formData.equipmentSanctioned]
-                      newEquipment[index] = { ...equipment, genericName: e.target.value }
-                      setFormData(prev => ({ ...prev, equipmentSanctioned: newEquipment }))
-                    }}
-                    placeholder="Enter generic name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Make</Label>
-                  <Input
-                    value={equipment.make}
-                    onChange={(e) => {
-                      const newEquipment = [...formData.equipmentSanctioned]
-                      newEquipment[index] = { ...equipment, make: e.target.value }
-                      setFormData(prev => ({ ...prev, equipmentSanctioned: newEquipment }))
-                    }}
-                    placeholder="Enter make"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Model</Label>
-                  <Input
-                    value={equipment.model}
-                    onChange={(e) => {
-                      const newEquipment = [...formData.equipmentSanctioned]
-                      newEquipment[index] = { ...equipment, model: e.target.value }
-                      setFormData(prev => ({ ...prev, equipmentSanctioned: newEquipment }))
-                    }}
-                    placeholder="Enter model"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Price (INR)</Label>
-                  <Input
-                    type="number"
-                    value={equipment.priceInr}
-                    onChange={(e) => {
-                      const newEquipment = [...formData.equipmentSanctioned]
-                      newEquipment[index] = { ...equipment, priceInr: e.target.value }
-                      setFormData(prev => ({ ...prev, equipmentSanctioned: newEquipment }))
-                    }}
-                    placeholder="Enter price in INR"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Invoice Upload</Label>
-                <Input
-                  type="file"
-                  onChange={(e) => {
-                    const newEquipment = [...formData.equipmentSanctioned]
-                    newEquipment[index] = { ...equipment, invoiceUpload: e.target.files[0]?.name || "" }
-                    setFormData(prev => ({ ...prev, equipmentSanctioned: newEquipment }))
-                  }}
-                />
-              </div>
+        <CardContent>
+          {formData.equipmentSanctioned.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <Wrench className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+              <p>No equipment added yet.</p>
+              <p className="text-sm">Click "Add Equipment" to add equipment items.</p>
             </div>
-          ))}
-
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => handleArrayAdd("equipmentSanctioned", { ...newEquipment })}
-            className="w-full"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Equipment
-          </Button>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[180px]">Generic Name</TableHead>
+                    <TableHead className="w-[150px]">Make</TableHead>
+                    <TableHead className="w-[150px]">Model</TableHead>
+                    <TableHead className="w-[150px]">Price (INR)</TableHead>
+                    <TableHead className="w-[200px]">Invoice Upload</TableHead>
+                    <TableHead className="w-[80px]">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {formData.equipmentSanctioned.map((equipment, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <Input
+                          value={equipment.genericName || ""}
+                          onChange={(e) => {
+                            const newEquipment = [...formData.equipmentSanctioned]
+                            newEquipment[index] = { ...equipment, genericName: e.target.value }
+                            setFormData(prev => ({ ...prev, equipmentSanctioned: newEquipment }))
+                          }}
+                          placeholder="Enter generic name"
+                          className="w-full"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          value={equipment.make || ""}
+                          onChange={(e) => {
+                            const newEquipment = [...formData.equipmentSanctioned]
+                            newEquipment[index] = { ...equipment, make: e.target.value }
+                            setFormData(prev => ({ ...prev, equipmentSanctioned: newEquipment }))
+                          }}
+                          placeholder="Enter make"
+                          className="w-full"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          value={equipment.model || ""}
+                          onChange={(e) => {
+                            const newEquipment = [...formData.equipmentSanctioned]
+                            newEquipment[index] = { ...equipment, model: e.target.value }
+                            setFormData(prev => ({ ...prev, equipmentSanctioned: newEquipment }))
+                          }}
+                          placeholder="Enter model"
+                          className="w-full"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          value={equipment.priceInr || ""}
+                          onChange={(e) => {
+                            const newEquipment = [...formData.equipmentSanctioned]
+                            newEquipment[index] = { ...equipment, priceInr: e.target.value }
+                            setFormData(prev => ({ ...prev, equipmentSanctioned: newEquipment }))
+                          }}
+                          placeholder="Enter price"
+                          className="w-full"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="file"
+                          onChange={(e) => {
+                            const newEquipment = [...formData.equipmentSanctioned]
+                            newEquipment[index] = { ...equipment, invoiceUpload: e.target.files[0]?.name || "" }
+                            setFormData(prev => ({ ...prev, equipmentSanctioned: newEquipment }))
+                          }}
+                          className="w-full"
+                        />
+                        {equipment.invoiceUpload && (
+                          <p className="text-xs text-gray-500 mt-1">{equipment.invoiceUpload}</p>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleArrayRemove("equipmentSanctioned", index)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
 
       {/* Manpower Sanctioned */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <Users className="h-5 w-5 mr-2" />
-            Manpower Sanctioned
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center">
+              <Users className="h-5 w-5 mr-2" />
+              Manpower Sanctioned
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => handleArrayAdd("manpowerSanctioned", { ...newManpower })}
+              className="bg-[#0d559e] text-white hover:bg-[#0d559e]/90"
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Add Manpower
+            </Button>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {formData.manpowerSanctioned.map((manpower, index) => (
-            <div key={index} className="border rounded-lg p-4 space-y-4">
-              <div className="flex justify-between items-center">
-                <h4 className="font-medium">Manpower {index + 1}</h4>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleArrayRemove("manpowerSanctioned", index)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Manpower Type</Label>
-                  <Select
-                    value={manpower.manpowerType}
-                    onValueChange={(value) => handleManpowerTypeChange(value, index)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select manpower type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {manpowerTypes.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  
-                  {/* Custom manpower type input */}
-                  {manpower.manpowerType === "Other" && (
-                    <div className="mt-2 space-y-2">
-                      <Label>Custom Manpower Type</Label>
-                      <div className="flex space-x-2">
+        <CardContent>
+          {formData.manpowerSanctioned.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <Users className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+              <p>No manpower added yet.</p>
+              <p className="text-sm">Click "Add Manpower" to add manpower items.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[250px]">Manpower Type</TableHead>
+                    <TableHead className="w-[150px]">Number</TableHead>
+                    <TableHead className="w-[80px]">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {formData.manpowerSanctioned.map((manpower, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <Select
+                          value={manpower.manpowerType || ""}
+                          onValueChange={(value) => handleManpowerTypeChange(value, index)}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select manpower type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {manpowerTypes.map((type) => (
+                              <SelectItem key={type} value={type}>
+                                {type}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {manpower.manpowerType === "Other" && (
+                          <div className="mt-2 flex space-x-2">
+                            <Input
+                              placeholder="Enter custom type"
+                              value={customManpowerType}
+                              onChange={(e) => setCustomManpowerType(e.target.value)}
+                              className="flex-1"
+                            />
+                            <Button
+                              type="button"
+                              onClick={() => {
+                                if (customManpowerType.trim()) {
+                                  const newManpower = [...formData.manpowerSanctioned]
+                                  newManpower[index] = { ...manpower, manpowerType: customManpowerType.trim() }
+                                  setFormData(prev => ({ ...prev, manpowerSanctioned: newManpower }))
+                                  setCustomManpowerType("")
+                                }
+                              }}
+                              disabled={!customManpowerType.trim()}
+                              size="sm"
+                            >
+                              Add
+                            </Button>
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell>
                         <Input
-                          placeholder="Enter custom manpower type"
-                          value={customManpowerType}
-                          onChange={(e) => setCustomManpowerType(e.target.value)}
+                          type="number"
+                          value={manpower.number || ""}
+                          onChange={(e) => {
+                            const newManpower = [...formData.manpowerSanctioned]
+                            newManpower[index] = { ...manpower, number: e.target.value }
+                            setFormData(prev => ({ ...prev, manpowerSanctioned: newManpower }))
+                          }}
+                          placeholder="Enter number"
+                          className="w-full"
                         />
+                      </TableCell>
+                      <TableCell>
                         <Button
                           type="button"
-                          onClick={() => {
-                            if (customManpowerType.trim()) {
-                              const newManpower = [...formData.manpowerSanctioned]
-                              newManpower[index] = { ...manpower, manpowerType: customManpowerType.trim() }
-                              setFormData(prev => ({ ...prev, manpowerSanctioned: newManpower }))
-                              setCustomManpowerType("")
-                            }
-                          }}
-                          disabled={!customManpowerType.trim()}
+                          variant="ghost"
                           size="sm"
+                          onClick={() => handleArrayRemove("manpowerSanctioned", index)}
+                          className="text-red-600 hover:text-red-700"
                         >
-                          Add
+                          <X className="h-4 w-4" />
                         </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label>Number</Label>
-                  <Input
-                    type="number"
-                    value={manpower.number}
-                    onChange={(e) => {
-                      const newManpower = [...formData.manpowerSanctioned]
-                      newManpower[index] = { ...manpower, number: e.target.value }
-                      setFormData(prev => ({ ...prev, manpowerSanctioned: newManpower }))
-                    }}
-                    placeholder="Enter number"
-                  />
-                </div>
-              </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
-          ))}
-
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => handleArrayAdd("manpowerSanctioned", { ...newManpower })}
-            className="w-full"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Manpower
-          </Button>
+          )}
         </CardContent>
       </Card>
 
       {/* Publications */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <BookOpen className="h-5 w-5 mr-2" />
-            Publications
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center">
+              <BookOpen className="h-5 w-5 mr-2" />
+              Publications
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => handleArrayAdd("publications", { ...newPublication })}
+              className="bg-[#0d559e] text-white hover:bg-[#0d559e]/90"
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Add Publication
+            </Button>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {formData.publications.map((publication, index) => (
-            <div key={index} className="border rounded-lg p-4 space-y-4">
-              <div className="flex justify-between items-center">
-                <h4 className="font-medium">Publication {index + 1}</h4>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleArrayRemove("publications", index)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Name</Label>
-                  <Input
-                    value={publication.name}
-                    onChange={(e) => {
-                      const newPublications = [...formData.publications]
-                      newPublications[index] = { ...publication, name: e.target.value }
-                      setFormData(prev => ({ ...prev, publications: newPublications }))
-                    }}
-                    placeholder="Enter publication name"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Publication Detail</Label>
-                  <Textarea
-                    value={publication.publicationDetail}
-                    onChange={(e) => {
-                      const newPublications = [...formData.publications]
-                      newPublications[index] = { ...publication, publicationDetail: e.target.value }
-                      setFormData(prev => ({ ...prev, publications: newPublications }))
-                    }}
-                    placeholder="Enter publication details"
-                    rows={3}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Status</Label>
-                  <Select
-                    value={publication.status}
-                    onValueChange={(value) => {
-                      const newPublications = [...formData.publications]
-                      newPublications[index] = { ...publication, status: value }
-                      setFormData(prev => ({ ...prev, publications: newPublications }))
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {publicationStatuses.map((status) => (
-                        <SelectItem key={status} value={status}>
-                          {status}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+        <CardContent>
+          {formData.publications.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <BookOpen className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+              <p>No publications added yet.</p>
+              <p className="text-sm">Click "Add Publication" to add publications.</p>
             </div>
-          ))}
-
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => handleArrayAdd("publications", { ...newPublication })}
-            className="w-full"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Publication
-          </Button>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[200px]">Name</TableHead>
+                    <TableHead className="w-[300px]">Publication Detail</TableHead>
+                    <TableHead className="w-[180px]">Status</TableHead>
+                    <TableHead className="w-[80px]">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {formData.publications.map((publication, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <Input
+                          value={publication.name || ""}
+                          onChange={(e) => {
+                            const newPublications = [...formData.publications]
+                            newPublications[index] = { ...publication, name: e.target.value }
+                            setFormData(prev => ({ ...prev, publications: newPublications }))
+                          }}
+                          placeholder="Enter publication name"
+                          className="w-full"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Textarea
+                          value={publication.publicationDetail || ""}
+                          onChange={(e) => {
+                            const newPublications = [...formData.publications]
+                            newPublications[index] = { ...publication, publicationDetail: e.target.value }
+                            setFormData(prev => ({ ...prev, publications: newPublications }))
+                          }}
+                          placeholder="Enter publication details"
+                          rows={2}
+                          className="w-full"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          value={publication.status || ""}
+                          onValueChange={(value) => {
+                            const newPublications = [...formData.publications]
+                            newPublications[index] = { ...publication, status: value }
+                            setFormData(prev => ({ ...prev, publications: newPublications }))
+                          }}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {publicationStatuses.map((status) => (
+                              <SelectItem key={status} value={status}>
+                                {status}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleArrayRemove("publications", index)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -951,40 +986,47 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
             Budget
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="budget.sanctionYear">Sanction Year *</Label>
-              <Input
-                id="budget.sanctionYear"
-                type="number"
-                value={formData.budget.sanctionYear}
-                onChange={(e) => handleInputChange("budget.sanctionYear", e.target.value)}
-                placeholder="Enter sanction year"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="budget.date">Date *</Label>
-              <Input
-                id="budget.date"
-                type="date"
-                value={formData.budget.date}
-                onChange={(e) => handleInputChange("budget.date", e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="budget.totalAmount">Total Amount *</Label>
-              <Input
-                id="budget.totalAmount"
-                type="number"
-                value={formData.budget.totalAmount}
-                onChange={(e) => handleInputChange("budget.totalAmount", e.target.value)}
-                placeholder="Enter total amount"
-                required
-              />
-            </div>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[200px]">Sanction Year</TableHead>
+                  <TableHead className="w-[200px]">Date</TableHead>
+                  <TableHead className="w-[200px]">Total Amount</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell>
+                    <Input
+                      type="number"
+                      value={formData.budget.sanctionYear || ""}
+                      onChange={(e) => handleInputChange("budget.sanctionYear", e.target.value)}
+                      placeholder="Enter sanction year"
+                      className="w-full"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      type="date"
+                      value={formData.budget.date || ""}
+                      onChange={(e) => handleInputChange("budget.date", e.target.value)}
+                      className="w-full"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      type="number"
+                      value={formData.budget.totalAmount || ""}
+                      onChange={(e) => handleInputChange("budget.totalAmount", e.target.value)}
+                      placeholder="Enter total amount"
+                      className="w-full"
+                    />
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
       </Card>

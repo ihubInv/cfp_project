@@ -383,7 +383,7 @@ const OnlineApplicationPage = () => {
                           </Select>
                         </div>
                         <div>
-                          <Label htmlFor="discipline">Discipline *</Label>
+                          <Label htmlFor="discipline">Discipline</Label>
                           <Select value={formData.discipline} onValueChange={(value) => handleInputChange("discipline", value)}>
                             <SelectTrigger>
                               <SelectValue placeholder={disciplinesLoading ? "Loading disciplines..." : "Select Discipline"} />

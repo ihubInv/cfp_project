@@ -10,9 +10,9 @@ const getFundingStats = async (req, res) => {
         // Get current year
         const currentYear = new Date().getFullYear()
         
-        // Ongoing projects statistics
+        // Ongoing projects statistics (using validationStatus)
         const ongoingProjects = await Project.aggregate([
-            { $match: { status: "Ongoing" } },
+            { $match: { validationStatus: "Ongoing" } },
             {
                 $group: {
                     _id: "$scheme",
@@ -63,32 +63,62 @@ const getFundingStats = async (req, res) => {
             { $sort: { count: -1 } }
         ])
 
-        // Project output statistics
-        const projectOutput = await Promise.all([
-            Publication.countDocuments(),
-            Equipment.countDocuments(),
-            Project.aggregate([
-                { $group: { _id: null, totalManpower: { $sum: "$manpower.total" } } }
-            ])
+        // Project output statistics - get real counts from database
+        // Count all publications from projects - use a simpler approach
+        const publicationsCountResult = await Project.aggregate([
+            {
+                $project: {
+                    publicationsCount: { 
+                        $cond: [
+                            { $isArray: "$publications" },
+                            { $size: "$publications" },
+                            0
+                        ]
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    total: { $sum: "$publicationsCount" }
+                }
+            }
         ])
+        const publicationsCount = publicationsCountResult.length > 0 && publicationsCountResult[0].total ? publicationsCountResult[0].total : 0
+        
+        // Debug: Log for troubleshooting
+        console.log("Publications aggregation result:", JSON.stringify(publicationsCountResult, null, 2))
+        console.log("Final publications count:", publicationsCount)
 
-        // Overall statistics
+        // Count equipment
+        const equipmentCount = await Equipment.countDocuments()
+
+        // Calculate total manpower from manpowerSanctioned arrays
+        const manpowerResult = await Project.aggregate([
+            { $match: { manpowerSanctioned: { $exists: true, $ne: [] } } },
+            { $unwind: "$manpowerSanctioned" },
+            { $group: { _id: null, totalManpower: { $sum: { $ifNull: ["$manpowerSanctioned.number", 0] } } } }
+        ])
+        const manpowerCount = manpowerResult.length > 0 ? manpowerResult[0].totalManpower : 0
+
+        const projectOutput = [publicationsCount, equipmentCount, manpowerCount]
+
+        // Overall statistics - get real-time counts
         const overallStats = await Promise.all([
-            Project.countDocuments({ status: "Ongoing" }),
+            // Active/Ongoing projects
+            Project.countDocuments({ validationStatus: "Ongoing" }),
+            // Completed projects
+            Project.countDocuments({ validationStatus: "Completed" }),
+            // Proposals received this year
             Project.countDocuments({ 
                 createdAt: { 
                     $gte: new Date(`${currentYear}-01-01`),
                     $lt: new Date(`${currentYear + 1}-01-01`)
                 }
             }),
-            Project.countDocuments({ 
-                createdAt: { 
-                    $gte: new Date(`${currentYear}-01-01`),
-                    $lt: new Date(`${currentYear + 1}-01-01`)
-                }
-            }),
+            // Total funding
             Project.aggregate([
-                { $group: { _id: null, totalFunding: { $sum: "$budget.totalAmount" } } }
+                { $group: { _id: null, totalFunding: { $sum: { $ifNull: ["$budget.totalAmount", 0] } } } }
             ])
         ])
 
@@ -97,8 +127,10 @@ const getFundingStats = async (req, res) => {
                 total: overallStats[0],
                 programs: ongoingProjects
             },
+            completedProjects: overallStats[1], // Add completed projects count
+            activeProjects: overallStats[0], // Alias for active projects
             proposalsReceived: {
-                total: overallStats[1],
+                total: overallStats[2],
                 programs: proposalsReceived
             },
             proposalsSupported: {
@@ -106,9 +138,9 @@ const getFundingStats = async (req, res) => {
                 programs: proposalsSupported
             },
             projectOutput: {
-                publications: projectOutput[0],
-                equipment: projectOutput[1],
-                manpower: projectOutput[2][0]?.totalManpower || 0
+                publications: projectOutput[0] || 0, // Count from aggregation (already handled)
+                equipment: projectOutput[1] || 0,
+                manpower: projectOutput[2] || 0
             },
             totalFunding: overallStats[3][0]?.totalFunding || 0,
             year: currentYear

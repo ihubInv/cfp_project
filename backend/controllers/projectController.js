@@ -223,38 +223,41 @@ const createProject = async (req, res) => {
         console.log("Creating project for user:", userId, "Role:", req.user.role)
         console.log("Request body:", JSON.stringify(req.body, null, 2))
 
-        // Validate that at least one principal investigator is provided
-        if (!req.body.principalInvestigators || req.body.principalInvestigators.length === 0) {
-            console.log("Validation failed: No principal investigators provided")
-            return res.status(400).json({ 
-                message: "At least one principal investigator is required" 
-            })
+        // All fields are optional - only validate formats if provided
+        
+        // Validate email formats if provided
+        if (req.body.principalInvestigators && req.body.principalInvestigators.length > 0) {
+            for (const pi of req.body.principalInvestigators) {
+                if (pi.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(pi.email)) {
+                    return res.status(400).json({ message: `Invalid PI email format: ${pi.email}` })
+                }
+            }
         }
-
-        // Validate required fields
-        if (!req.body.title) {
-            console.log("Validation failed: No title provided")
-            return res.status(400).json({ message: "Project title is required" })
+        
+        if (req.body.coPrincipalInvestigators && req.body.coPrincipalInvestigators.length > 0) {
+            for (const coPI of req.body.coPrincipalInvestigators) {
+                if (coPI.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(coPI.email)) {
+                    return res.status(400).json({ message: `Invalid Co-PI email format: ${coPI.email}` })
+                }
+            }
         }
-
-        if (!req.body.discipline) {
-            console.log("Validation failed: No discipline provided")
-            return res.status(400).json({ message: "Discipline is required" })
+        
+        // Validate budget amount format if provided
+        if (req.body.budget && req.body.budget.totalAmount) {
+            const totalAmount = parseFloat(req.body.budget.totalAmount)
+            if (isNaN(totalAmount) || totalAmount < 0) {
+                return res.status(400).json({ message: "Budget total amount must be a valid positive number if provided" })
+            }
         }
-
-        if (!req.body.scheme) {
-            console.log("Validation failed: No scheme provided")
-            return res.status(400).json({ message: "Scheme is required" })
+        
+        // Ensure principalInvestigators is an array (can be empty)
+        if (!req.body.principalInvestigators) {
+            req.body.principalInvestigators = []
         }
-
-        if (!req.body.projectSummary) {
-            console.log("Validation failed: No project summary provided")
-            return res.status(400).json({ message: "Project summary is required" })
-        }
-
-        if (!req.body.budget || !req.body.budget.totalAmount) {
-            console.log("Validation failed: No budget total amount provided")
-            return res.status(400).json({ message: "Budget total amount is required" })
+        
+        // Ensure coPrincipalInvestigators is an array (can be empty)
+        if (!req.body.coPrincipalInvestigators) {
+            req.body.coPrincipalInvestigators = []
         }
 
         // Generate file number if not provided
@@ -267,15 +270,24 @@ const createProject = async (req, res) => {
 
         console.log("Generated file number:", fileNumber)
 
-        // Ensure backward compatibility by setting legacy pi field from first PI
+        // Ensure backward compatibility by setting legacy pi field from first PI (if available)
         const projectData = {
             ...req.body,
             fileNumber,
             createdBy: userId,
             lastUpdatedBy: userId,
+            // Set default empty strings for optional fields if not provided
+            title: req.body.title || '',
+            discipline: req.body.discipline || '',
+            scheme: req.body.scheme || '',
+            projectSummary: req.body.projectSummary || '',
             // Set legacy fields for backward compatibility
-            pi: req.body.principalInvestigators[0] || {},
-            coPI: req.body.coPrincipalInvestigators?.[0] || {},
+            pi: (req.body.principalInvestigators && req.body.principalInvestigators.length > 0) 
+                ? req.body.principalInvestigators[0] 
+                : {},
+            coPI: (req.body.coPrincipalInvestigators && req.body.coPrincipalInvestigators.length > 0)
+                ? req.body.coPrincipalInvestigators[0]
+                : {},
         }
 
         console.log("Project data to save:", JSON.stringify(projectData, null, 2))
