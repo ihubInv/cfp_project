@@ -221,18 +221,20 @@ const SchemeManagement = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen p-6">
       {/* Header */}
-      <div className="flex justify-between items-start">
+      <div className="flex justify-between items-start mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Scheme Management</h1>
-          <p className="text-gray-600">Manage project schemes and funding programs</p>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+            Scheme Management
+          </h1>
+          <p className="text-gray-600 text-lg">Manage project schemes and funding programs</p>
         </div>
         <div className="flex gap-2">
           <Button 
             onClick={() => refetch()} 
             variant="outline"
-            className="border-[#0d559e] text-[#0d559e] hover:bg-[#0d559e] hover:text-white"
+            className="border-2 border-blue-600 text-blue-600 hover:bg-gradient-to-r hover:from-blue-600 hover:to-blue-700 hover:text-white transition-all duration-300 hover:scale-105"
           >
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
@@ -242,12 +244,15 @@ const SchemeManagement = () => {
               onClick={handleInitializeDefault}
               disabled={isInitializing}
               variant="outline"
-              className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
+              className="border-2 border-green-600 text-green-600 hover:bg-gradient-to-r hover:from-green-600 hover:to-green-700 hover:text-white transition-all duration-300 hover:scale-105"
             >
               {isInitializing ? "Initializing..." : "Initialize Default"}
             </Button>
           )}
-          <Button onClick={handleNewScheme} className="bg-[#0d559e] hover:bg-[#0d559e]/90">
+          <Button 
+            onClick={handleNewScheme} 
+            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+          >
             <Plus className="h-4 w-4 mr-2" />
             Add Scheme
           </Button>

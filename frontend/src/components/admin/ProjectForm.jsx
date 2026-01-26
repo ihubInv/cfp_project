@@ -8,13 +8,15 @@ import { Textarea } from "../ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
 import { Badge } from "../ui/badge"
-import { X, Plus, Save, FileText, User, Building, Wrench, Users, BookOpen, DollarSign } from "lucide-react"
+import { X, Plus, Save, FileText, User, Building, Wrench, Users, BookOpen, DollarSign, Upload, Download, Trash2 } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table"
 import { useGetDisciplinesQuery } from "../../store/api/categoryApi"
 import { useGetSchemesQuery } from "../../store/api/schemeApi"
 import { useGetAllManpowerTypesQuery } from "../../store/api/manpowerTypeApi"
+import FileUpload from "../ui/file-upload"
+import { useUploadPatentDocumentsMutation, useDeletePatentDocumentMutation, useDownloadPatentDocumentMutation } from "../../store/api/fileApi"
 
-const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
+const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false, onProjectUpdate }) => {
   // Fetch disciplines, schemes, and manpower types from the management system
   const { data: disciplines } = useGetDisciplinesQuery()
   const { data: schemes } = useGetSchemesQuery()
@@ -37,6 +39,7 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
       instituteName: "",
       department: "",
       instituteAddress: "",
+      affiliationType: "Institute",
     }],
     
     // Multiple Co-Principal Investigators
@@ -58,18 +61,50 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
       totalAmount: "",
     },
     
-    // Patent Details
+    // Patent Details (legacy - kept for backward compatibility)
     patentDetail: "",
+    patentDocuments: [], // Legacy - kept for backward compatibility
+    
+    // Patents - Array of patent entries
+    patents: [], // Array of { patentDetail: string, patentDocument: File }
   })
+  
+  // State for existing patent documents (legacy)
+  const [existingPatentDocuments, setExistingPatentDocuments] = useState([])
+  
+  // File upload mutations
+  const [uploadPatentDocuments, { isLoading: isUploadingPatents }] = useUploadPatentDocumentsMutation()
+  const [deletePatentDocument, { isLoading: isDeletingPatent }] = useDeletePatentDocumentMutation()
+  const [downloadPatentDocument] = useDownloadPatentDocumentMutation()
 
   // Initialize form data when project prop changes
   useEffect(() => {
     if (project) {
-      setFormData({
+      // Ensure discipline and scheme values are strings and trimmed
+      // Also check if the value exists in the available options to prevent reset
+      const disciplineValue = project.discipline ? String(project.discipline).trim() : ""
+      const schemeValue = project.scheme ? String(project.scheme).trim() : ""
+      
+      // Verify the discipline value exists in the available disciplines
+      const validDiscipline = disciplines && disciplines.length > 0 && disciplineValue
+        ? disciplines.find(d => d.name === disciplineValue || d.name.trim() === disciplineValue)
+          ? disciplineValue
+          : disciplineValue // Keep the value even if not found (might be loading)
+        : disciplineValue
+      
+      // Verify the scheme value exists in the available schemes
+      const validScheme = schemes && schemes.length > 0 && schemeValue
+        ? schemes.find(s => s.name === schemeValue || s.name.trim() === schemeValue)
+          ? schemeValue
+          : schemeValue // Keep the value even if not found (might be loading)
+        : schemeValue
+      
+      setFormData(prev => ({
+        ...prev,
         title: project.title || "",
         fileNumber: project.fileNumber || "",
-        discipline: project.discipline || "",
-        scheme: project.scheme || "",
+        discipline: validDiscipline,
+        scheme: validScheme,
         projectSummary: project.projectSummary || "",
         status: project.validationStatus || "Ongoing", // Add status field
         principalInvestigators: project.principalInvestigators || [{
@@ -79,15 +114,27 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
           instituteName: project.pi?.instituteName || "",
           department: project.pi?.department || "",
           instituteAddress: project.pi?.instituteAddress || "",
+          affiliationType: project.pi?.affiliationType || "Institute",
         }],
-        coPrincipalInvestigators: project.coPrincipalInvestigators || (project.coPI ? [{
-          name: project.coPI.name || "",
-          designation: project.coPI.designation || "",
-          email: project.coPI.email || "",
-          instituteName: project.coPI.instituteName || "",
-          department: project.coPI.department || "",
-          instituteAddress: project.coPI.instituteAddress || "",
-        }] : []),
+        coPrincipalInvestigators: (project.coPrincipalInvestigators && project.coPrincipalInvestigators.length > 0)
+          ? project.coPrincipalInvestigators.map(coPI => ({
+              name: coPI.name || "",
+              designation: coPI.designation || "",
+              email: coPI.email || "",
+              instituteName: coPI.instituteName || "",
+              department: coPI.department || "",
+              instituteAddress: coPI.instituteAddress || "",
+              affiliationType: coPI.affiliationType || "Institute", // Ensure affiliationType is always set
+            }))
+          : (project.coPI ? [{
+              name: project.coPI.name || "",
+              designation: project.coPI.designation || "",
+              email: project.coPI.email || "",
+              instituteName: project.coPI.instituteName || "",
+              department: project.coPI.department || "",
+              instituteAddress: project.coPI.instituteAddress || "",
+              affiliationType: project.coPI.affiliationType || "Institute",
+            }] : []),
         equipmentSanctioned: project.equipmentSanctioned || [],
         manpowerSanctioned: project.manpowerSanctioned || [],
         publications: project.publications || [],
@@ -97,9 +144,26 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
           totalAmount: project.budget?.totalAmount || "",
         },
         patentDetail: project.patentDetail || "",
-      })
+        patentDocuments: [], // Legacy - kept for backward compatibility
+        patents: project.patents && project.patents.length > 0 
+          ? project.patents.map(p => ({
+              patentDetail: p.patentDetail || "",
+              patentDocument: null, // Files will be handled separately - existing docs shown via project.patents[index].patentDocument
+            }))
+          : [],
+      }))
+      
+      // Set existing patent documents (legacy)
+      if (project.patentDocuments && project.patentDocuments.length > 0) {
+        setExistingPatentDocuments(project.patentDocuments)
+      } else {
+        setExistingPatentDocuments([])
+      }
+    } else {
+      // Reset when no project (creating new)
+      setExistingPatentDocuments([])
     }
-  }, [project])
+  }, [project, disciplines, schemes]) // Include disciplines and schemes to update when they load
 
   const handleInputChange = (field, value, index = null) => {
     if (field.includes('.')) {
@@ -159,6 +223,7 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
       instituteName: "",
       department: "",
       instituteAddress: "",
+      affiliationType: "Institute",
     }
     handleArrayAdd('principalInvestigators', newPI)
   }
@@ -171,6 +236,7 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
       instituteName: "",
       department: "",
       instituteAddress: "",
+      affiliationType: "Institute",
     }
     handleArrayAdd('coPrincipalInvestigators', newCoPI)
   }
@@ -242,6 +308,24 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
         totalAmount: parseFloat(formData.budget.totalAmount) || 0,
         date: formData.budget.date ? new Date(formData.budget.date) : new Date(),
       },
+      principalInvestigators: formData.principalInvestigators.map(pi => ({
+        name: pi.name || "",
+        designation: pi.designation || "",
+        email: pi.email || "",
+        instituteName: pi.instituteName || "",
+        department: pi.department || "",
+        instituteAddress: pi.instituteAddress || "",
+        affiliationType: pi.affiliationType || "Institute", // Ensure affiliationType is set
+      })),
+      coPrincipalInvestigators: formData.coPrincipalInvestigators.map(coPI => ({
+        name: coPI.name || "",
+        designation: coPI.designation || "",
+        email: coPI.email || "",
+        instituteName: coPI.instituteName || "",
+        department: coPI.department || "",
+        instituteAddress: coPI.instituteAddress || "",
+        affiliationType: coPI.affiliationType || "Institute", // Ensure affiliationType is set
+      })),
       equipmentSanctioned: formData.equipmentSanctioned.map(item => ({
         ...item,
         priceInr: parseFloat(item.priceInr) || 0,
@@ -255,8 +339,37 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
     // Remove the status field from submitData as it's mapped to validationStatus
     delete submitData.status
     
+    // Handle patents - separate files from data
+    const patentsData = submitData.patents || []
+    const patentsWithFiles = patentsData.map((patent, index) => ({
+      patentDetail: patent.patentDetail || "",
+      patentDocument: patent.patentDocument || null, // File object
+    }))
+    
+    // Remove patentDocuments and patents from submitData - we'll handle separately
+    const filesToUpload = submitData.patentDocuments || [] // Legacy
+    delete submitData.patentDocuments
+    delete submitData.patents
+    
+    // Debug: Log Co-PI data specifically
+    if (submitData.coPrincipalInvestigators) {
+      console.log("Co-PI array being submitted:", JSON.stringify(submitData.coPrincipalInvestigators, null, 2))
+      submitData.coPrincipalInvestigators.forEach((coPI, index) => {
+        console.log(`Co-PI ${index + 1} being submitted:`, {
+          name: coPI.name,
+          affiliationType: coPI.affiliationType,
+          instituteName: coPI.instituteName
+        })
+      })
+    }
+    
     console.log("Submitting project data:", submitData)
-    onSubmit(submitData)
+    console.log("Patents with files:", patentsWithFiles.length)
+    console.log("Legacy patent documents to upload:", filesToUpload.length)
+    
+    // Submit project data with patents (without file objects - files will be uploaded separately)
+    submitData.patents = patentsData.map(p => ({ patentDetail: p.patentDetail || "" })) // Remove file objects
+    onSubmit(submitData, filesToUpload, patentsWithFiles)
   }
 
   // New item states for dynamic arrays
@@ -277,7 +390,16 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
     name: "",
     publicationDetail: "",
     status: "",
+    link: "",
   })
+  
+  const publicationStatuses = [
+    "Published",
+    "Submitted",
+    "Under Review",
+    "In Preparation",
+    "Other"
+  ]
 
   // State for custom manpower types
   const [customManpowerType, setCustomManpowerType] = useState("")
@@ -298,13 +420,6 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
     "Ongoing"
   ]
 
-  const publicationStatuses = [
-    "Published",
-    "Submitted",
-    "Under Review",
-    "In Preparation",
-    "Other"
-  ]
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
@@ -343,7 +458,10 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
 
           <div className="space-y-2">
             <Label htmlFor="discipline">Select Discipline</Label>
-            <Select value={formData.discipline} onValueChange={(value) => handleInputChange("discipline", value)}>
+            <Select 
+              value={formData.discipline || ""} 
+              onValueChange={(value) => handleInputChange("discipline", value)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select discipline" />
               </SelectTrigger>
@@ -359,7 +477,10 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
 
           <div className="space-y-2">
             <Label htmlFor="scheme">Select Scheme</Label>
-            <Select value={formData.scheme} onValueChange={(value) => handleInputChange("scheme", value)}>
+            <Select 
+              value={formData.scheme || ""} 
+              onValueChange={(value) => handleInputChange("scheme", value)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select scheme" />
               </SelectTrigger>
@@ -413,9 +534,8 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
             <Button
               type="button"
               onClick={addPrincipalInvestigator}
-              variant="outline"
               size="sm"
-              className="bg-[#0d559e] text-white hover:bg-[#0d559e]/90"
+              className="bg-[#0d559e] text-white hover:bg-[#0d559e]/90 border-0"
             >
               <Plus className="h-4 w-4 mr-1" />
               Add PI
@@ -433,60 +553,75 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
                   <TableHead className="w-[150px]">Name</TableHead>
                   <TableHead className="w-[150px]">Designation</TableHead>
                   <TableHead className="w-[200px]">Email</TableHead>
-                  <TableHead className="w-[180px]">Institute Name</TableHead>
+                  <TableHead className="w-[130px]">Affiliation</TableHead>
+                  <TableHead className="w-[180px]">Institute/Industry Name</TableHead>
                   <TableHead className="w-[150px]">Department</TableHead>
-                  <TableHead className="w-[200px]">Institute Address</TableHead>
+                  <TableHead className="w-[200px]">Address</TableHead>
                   <TableHead className="w-[80px]">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {formData.principalInvestigators.map((pi, index) => (
+          {formData.principalInvestigators.map((pi, index) => (
                   <TableRow key={index}>
                     <TableCell>
-                      <Input
+                  <Input
                         value={pi.name || ""}
-                        onChange={(e) => handlePIChange("name", e.target.value, index)}
+                    onChange={(e) => handlePIChange("name", e.target.value, index)}
                         placeholder="Enter name"
                         className="w-full"
-                      />
+                  />
                     </TableCell>
                     <TableCell>
-                      <Input
+                  <Input
                         value={pi.designation || ""}
-                        onChange={(e) => handlePIChange("designation", e.target.value, index)}
-                        placeholder="Enter designation"
+                    onChange={(e) => handlePIChange("designation", e.target.value, index)}
+                    placeholder="Enter designation"
                         className="w-full"
                       />
                     </TableCell>
                     <TableCell>
-                      <Input
-                        type="email"
+                <Input
+                  type="email"
                         value={pi.email || ""}
-                        onChange={(e) => handlePIChange("email", e.target.value, index)}
+                  onChange={(e) => handlePIChange("email", e.target.value, index)}
                         placeholder="Enter email"
                         className="w-full"
-                      />
+                />
                     </TableCell>
                     <TableCell>
-                      <Input
+                      <Select
+                        value={pi.affiliationType || "Institute"}
+                        onValueChange={(value) => handlePIChange("affiliationType", value, index)}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Institute">Institute</SelectItem>
+                          <SelectItem value="Industry">Industry</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                  <Input
                         value={pi.instituteName || ""}
-                        onChange={(e) => handlePIChange("instituteName", e.target.value, index)}
-                        placeholder="Enter institute"
+                    onChange={(e) => handlePIChange("instituteName", e.target.value, index)}
+                        placeholder={pi.affiliationType === "Industry" ? "Enter industry name" : "Enter institute name"}
                         className="w-full"
-                      />
+                  />
                     </TableCell>
                     <TableCell>
-                      <Input
+                  <Input
                         value={pi.department || ""}
-                        onChange={(e) => handlePIChange("department", e.target.value, index)}
-                        placeholder="Enter department"
+                    onChange={(e) => handlePIChange("department", e.target.value, index)}
+                    placeholder="Enter department"
                         className="w-full"
                       />
                     </TableCell>
                     <TableCell>
                       <Input
                         value={pi.instituteAddress || ""}
-                        onChange={(e) => handlePIChange("instituteAddress", e.target.value, index)}
+                  onChange={(e) => handlePIChange("instituteAddress", e.target.value, index)}
                         placeholder="Enter address"
                         className="w-full"
                       />
@@ -510,7 +645,7 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
                 ))}
               </TableBody>
             </Table>
-          </div>
+            </div>
         </CardContent>
       </Card>
 
@@ -525,9 +660,8 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
             <Button
               type="button"
               onClick={addCoPrincipalInvestigator}
-              variant="outline"
               size="sm"
-              className="bg-[#0d559e] text-white hover:bg-[#0d559e]/90"
+              className="bg-[#0d559e] text-white hover:bg-[#0d559e]/90 border-0"
             >
               <Plus className="h-4 w-4 mr-1" />
               Add Co-PI
@@ -552,9 +686,10 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
                     <TableHead className="w-[150px]">Name</TableHead>
                     <TableHead className="w-[150px]">Designation</TableHead>
                     <TableHead className="w-[200px]">Email</TableHead>
-                    <TableHead className="w-[180px]">Institute Name</TableHead>
+                    <TableHead className="w-[130px]">Affiliation</TableHead>
+                    <TableHead className="w-[180px]">Institute/Industry Name</TableHead>
                     <TableHead className="w-[150px]">Department</TableHead>
-                    <TableHead className="w-[200px]">Institute Address</TableHead>
+                    <TableHead className="w-[200px]">Address</TableHead>
                     <TableHead className="w-[80px]">Action</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -562,50 +697,64 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
                   {formData.coPrincipalInvestigators.map((coPI, index) => (
                     <TableRow key={index}>
                       <TableCell>
-                        <Input
+                    <Input
                           value={coPI.name || ""}
-                          onChange={(e) => handleCoPIChange("name", e.target.value, index)}
+                      onChange={(e) => handleCoPIChange("name", e.target.value, index)}
                           placeholder="Enter name"
                           className="w-full"
-                        />
+                    />
                       </TableCell>
                       <TableCell>
-                        <Input
+                    <Input
                           value={coPI.designation || ""}
-                          onChange={(e) => handleCoPIChange("designation", e.target.value, index)}
-                          placeholder="Enter designation"
+                      onChange={(e) => handleCoPIChange("designation", e.target.value, index)}
+                      placeholder="Enter designation"
                           className="w-full"
                         />
                       </TableCell>
                       <TableCell>
-                        <Input
-                          type="email"
+                  <Input
+                    type="email"
                           value={coPI.email || ""}
-                          onChange={(e) => handleCoPIChange("email", e.target.value, index)}
+                    onChange={(e) => handleCoPIChange("email", e.target.value, index)}
                           placeholder="Enter email"
                           className="w-full"
-                        />
+                  />
                       </TableCell>
                       <TableCell>
-                        <Input
+                        <Select
+                          value={coPI.affiliationType || "Institute"}
+                          onValueChange={(value) => handleCoPIChange("affiliationType", value, index)}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Institute">Institute</SelectItem>
+                            <SelectItem value="Industry">Industry</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                    <Input
                           value={coPI.instituteName || ""}
-                          onChange={(e) => handleCoPIChange("instituteName", e.target.value, index)}
-                          placeholder="Enter institute"
+                      onChange={(e) => handleCoPIChange("instituteName", e.target.value, index)}
+                          placeholder={coPI.affiliationType === "Industry" ? "Enter industry name" : "Enter institute name"}
                           className="w-full"
-                        />
+                    />
                       </TableCell>
                       <TableCell>
-                        <Input
+                    <Input
                           value={coPI.department || ""}
-                          onChange={(e) => handleCoPIChange("department", e.target.value, index)}
-                          placeholder="Enter department"
+                      onChange={(e) => handleCoPIChange("department", e.target.value, index)}
+                      placeholder="Enter department"
                           className="w-full"
                         />
                       </TableCell>
                       <TableCell>
                         <Input
                           value={coPI.instituteAddress || ""}
-                          onChange={(e) => handleCoPIChange("instituteAddress", e.target.value, index)}
+                    onChange={(e) => handleCoPIChange("instituteAddress", e.target.value, index)}
                           placeholder="Enter address"
                           className="w-full"
                         />
@@ -625,7 +774,7 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
                   ))}
                 </TableBody>
               </Table>
-            </div>
+                </div>
           )}
         </CardContent>
       </Card>
@@ -635,19 +784,18 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center">
-              <Wrench className="h-5 w-5 mr-2" />
-              Equipment Sanctioned
+            <Wrench className="h-5 w-5 mr-2" />
+            Equipment Sanctioned
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
+                <Button
+                  type="button"
+                  size="sm"
               onClick={() => handleArrayAdd("equipmentSanctioned", { ...newEquipment })}
-              className="bg-[#0d559e] text-white hover:bg-[#0d559e]/90"
-            >
+              className="bg-[#0d559e] text-white hover:bg-[#0d559e]/90 border-0"
+                >
               <Plus className="h-4 w-4 mr-1" />
               Add Equipment
-            </Button>
+                </Button>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -656,7 +804,7 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
               <Wrench className="h-12 w-12 mx-auto mb-4 text-gray-400" />
               <p>No equipment added yet.</p>
               <p className="text-sm">Click "Add Equipment" to add equipment items.</p>
-            </div>
+              </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
@@ -674,62 +822,62 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
                   {formData.equipmentSanctioned.map((equipment, index) => (
                     <TableRow key={index}>
                       <TableCell>
-                        <Input
+                  <Input
                           value={equipment.genericName || ""}
-                          onChange={(e) => {
-                            const newEquipment = [...formData.equipmentSanctioned]
-                            newEquipment[index] = { ...equipment, genericName: e.target.value }
-                            setFormData(prev => ({ ...prev, equipmentSanctioned: newEquipment }))
-                          }}
-                          placeholder="Enter generic name"
+                    onChange={(e) => {
+                      const newEquipment = [...formData.equipmentSanctioned]
+                      newEquipment[index] = { ...equipment, genericName: e.target.value }
+                      setFormData(prev => ({ ...prev, equipmentSanctioned: newEquipment }))
+                    }}
+                    placeholder="Enter generic name"
                           className="w-full"
-                        />
+                  />
                       </TableCell>
                       <TableCell>
-                        <Input
+                  <Input
                           value={equipment.make || ""}
-                          onChange={(e) => {
-                            const newEquipment = [...formData.equipmentSanctioned]
-                            newEquipment[index] = { ...equipment, make: e.target.value }
-                            setFormData(prev => ({ ...prev, equipmentSanctioned: newEquipment }))
-                          }}
-                          placeholder="Enter make"
+                    onChange={(e) => {
+                      const newEquipment = [...formData.equipmentSanctioned]
+                      newEquipment[index] = { ...equipment, make: e.target.value }
+                      setFormData(prev => ({ ...prev, equipmentSanctioned: newEquipment }))
+                    }}
+                    placeholder="Enter make"
                           className="w-full"
                         />
                       </TableCell>
                       <TableCell>
-                        <Input
+                  <Input
                           value={equipment.model || ""}
-                          onChange={(e) => {
-                            const newEquipment = [...formData.equipmentSanctioned]
-                            newEquipment[index] = { ...equipment, model: e.target.value }
-                            setFormData(prev => ({ ...prev, equipmentSanctioned: newEquipment }))
-                          }}
-                          placeholder="Enter model"
+                    onChange={(e) => {
+                      const newEquipment = [...formData.equipmentSanctioned]
+                      newEquipment[index] = { ...equipment, model: e.target.value }
+                      setFormData(prev => ({ ...prev, equipmentSanctioned: newEquipment }))
+                    }}
+                    placeholder="Enter model"
                           className="w-full"
-                        />
+                  />
                       </TableCell>
                       <TableCell>
-                        <Input
-                          type="number"
+                  <Input
+                    type="number"
                           value={equipment.priceInr || ""}
-                          onChange={(e) => {
-                            const newEquipment = [...formData.equipmentSanctioned]
-                            newEquipment[index] = { ...equipment, priceInr: e.target.value }
-                            setFormData(prev => ({ ...prev, equipmentSanctioned: newEquipment }))
-                          }}
+                    onChange={(e) => {
+                      const newEquipment = [...formData.equipmentSanctioned]
+                      newEquipment[index] = { ...equipment, priceInr: e.target.value }
+                      setFormData(prev => ({ ...prev, equipmentSanctioned: newEquipment }))
+                    }}
                           placeholder="Enter price"
                           className="w-full"
                         />
                       </TableCell>
                       <TableCell>
-                        <Input
-                          type="file"
-                          onChange={(e) => {
-                            const newEquipment = [...formData.equipmentSanctioned]
-                            newEquipment[index] = { ...equipment, invoiceUpload: e.target.files[0]?.name || "" }
-                            setFormData(prev => ({ ...prev, equipmentSanctioned: newEquipment }))
-                          }}
+                <Input
+                  type="file"
+                  onChange={(e) => {
+                    const newEquipment = [...formData.equipmentSanctioned]
+                    newEquipment[index] = { ...equipment, invoiceUpload: e.target.files[0]?.name || "" }
+                    setFormData(prev => ({ ...prev, equipmentSanctioned: newEquipment }))
+                  }}
                           className="w-full"
                         />
                         {equipment.invoiceUpload && (
@@ -737,15 +885,15 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
                         )}
                       </TableCell>
                       <TableCell>
-                        <Button
-                          type="button"
+          <Button
+            type="button"
                           variant="ghost"
                           size="sm"
                           onClick={() => handleArrayRemove("equipmentSanctioned", index)}
                           className="text-red-600 hover:text-red-700"
-                        >
+          >
                           <X className="h-4 w-4" />
-                        </Button>
+          </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -761,19 +909,18 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center">
-              <Users className="h-5 w-5 mr-2" />
-              Manpower Sanctioned
+            <Users className="h-5 w-5 mr-2" />
+            Manpower Sanctioned
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
+                <Button
+                  type="button"
+                  size="sm"
               onClick={() => handleArrayAdd("manpowerSanctioned", { ...newManpower })}
-              className="bg-[#0d559e] text-white hover:bg-[#0d559e]/90"
-            >
+              className="bg-[#0d559e] text-white hover:bg-[#0d559e]/90 border-0"
+                >
               <Plus className="h-4 w-4 mr-1" />
               Add Manpower
-            </Button>
+                </Button>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -782,7 +929,7 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
               <Users className="h-12 w-12 mx-auto mb-4 text-gray-400" />
               <p>No manpower added yet.</p>
               <p className="text-sm">Click "Add Manpower" to add manpower items.</p>
-            </div>
+              </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
@@ -797,70 +944,70 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
                   {formData.manpowerSanctioned.map((manpower, index) => (
                     <TableRow key={index}>
                       <TableCell>
-                        <Select
+                  <Select
                           value={manpower.manpowerType || ""}
-                          onValueChange={(value) => handleManpowerTypeChange(value, index)}
-                        >
+                    onValueChange={(value) => handleManpowerTypeChange(value, index)}
+                  >
                           <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select manpower type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {manpowerTypes.map((type) => (
-                              <SelectItem key={type} value={type}>
-                                {type}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        {manpower.manpowerType === "Other" && (
+                      <SelectValue placeholder="Select manpower type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {manpowerTypes.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {manpower.manpowerType === "Other" && (
                           <div className="mt-2 flex space-x-2">
-                            <Input
-                              placeholder="Enter custom type"
-                              value={customManpowerType}
-                              onChange={(e) => setCustomManpowerType(e.target.value)}
-                              className="flex-1"
-                            />
-                            <Button
-                              type="button"
-                              onClick={() => {
-                                if (customManpowerType.trim()) {
-                                  const newManpower = [...formData.manpowerSanctioned]
-                                  newManpower[index] = { ...manpower, manpowerType: customManpowerType.trim() }
-                                  setFormData(prev => ({ ...prev, manpowerSanctioned: newManpower }))
-                                  setCustomManpowerType("")
-                                }
-                              }}
-                              disabled={!customManpowerType.trim()}
-                              size="sm"
-                            >
-                              Add
-                            </Button>
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell>
                         <Input
-                          type="number"
-                          value={manpower.number || ""}
-                          onChange={(e) => {
-                            const newManpower = [...formData.manpowerSanctioned]
-                            newManpower[index] = { ...manpower, number: e.target.value }
-                            setFormData(prev => ({ ...prev, manpowerSanctioned: newManpower }))
-                          }}
-                          placeholder="Enter number"
-                          className="w-full"
+                              placeholder="Enter custom type"
+                          value={customManpowerType}
+                          onChange={(e) => setCustomManpowerType(e.target.value)}
+                              className="flex-1"
                         />
-                      </TableCell>
-                      <TableCell>
                         <Button
                           type="button"
+                          onClick={() => {
+                            if (customManpowerType.trim()) {
+                              const newManpower = [...formData.manpowerSanctioned]
+                              newManpower[index] = { ...manpower, manpowerType: customManpowerType.trim() }
+                              setFormData(prev => ({ ...prev, manpowerSanctioned: newManpower }))
+                              setCustomManpowerType("")
+                            }
+                          }}
+                          disabled={!customManpowerType.trim()}
+                          size="sm"
+                        >
+                          Add
+                        </Button>
+                    </div>
+                  )}
+                      </TableCell>
+                      <TableCell>
+                  <Input
+                    type="number"
+                          value={manpower.number || ""}
+                    onChange={(e) => {
+                      const newManpower = [...formData.manpowerSanctioned]
+                      newManpower[index] = { ...manpower, number: e.target.value }
+                      setFormData(prev => ({ ...prev, manpowerSanctioned: newManpower }))
+                    }}
+                    placeholder="Enter number"
+                          className="w-full"
+                  />
+                      </TableCell>
+                      <TableCell>
+          <Button
+            type="button"
                           variant="ghost"
                           size="sm"
                           onClick={() => handleArrayRemove("manpowerSanctioned", index)}
                           className="text-red-600 hover:text-red-700"
-                        >
+          >
                           <X className="h-4 w-4" />
-                        </Button>
+          </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -876,20 +1023,22 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center">
-              <BookOpen className="h-5 w-5 mr-2" />
-              Publications
+            <BookOpen className="h-5 w-5 mr-2" />
+            Publications
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
+                <Button
+                  type="button"
+                  size="sm"
               onClick={() => handleArrayAdd("publications", { ...newPublication })}
-              className="bg-[#0d559e] text-white hover:bg-[#0d559e]/90"
-            >
+              className="bg-[#0d559e] text-white hover:bg-[#0d559e]/90 border-0"
+                >
               <Plus className="h-4 w-4 mr-1" />
               Add Publication
-            </Button>
+                </Button>
           </CardTitle>
+          <CardDescription>
+            Add publication details including name, description, status, and link
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {formData.publications.length === 0 ? (
@@ -897,15 +1046,16 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
               <BookOpen className="h-12 w-12 mx-auto mb-4 text-gray-400" />
               <p>No publications added yet.</p>
               <p className="text-sm">Click "Add Publication" to add publications.</p>
-            </div>
+              </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[200px]">Name</TableHead>
-                    <TableHead className="w-[300px]">Publication Detail</TableHead>
-                    <TableHead className="w-[180px]">Status</TableHead>
+                    <TableHead className="w-[250px]">Publication Detail</TableHead>
+                    <TableHead className="w-[250px]">Link</TableHead>
+                    <TableHead className="w-[150px]">Status</TableHead>
                     <TableHead className="w-[80px]">Action</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -913,61 +1063,74 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
                   {formData.publications.map((publication, index) => (
                     <TableRow key={index}>
                       <TableCell>
-                        <Input
+                  <Input
                           value={publication.name || ""}
-                          onChange={(e) => {
-                            const newPublications = [...formData.publications]
-                            newPublications[index] = { ...publication, name: e.target.value }
-                            setFormData(prev => ({ ...prev, publications: newPublications }))
-                          }}
-                          placeholder="Enter publication name"
+                    onChange={(e) => {
+                      const newPublications = [...formData.publications]
+                      newPublications[index] = { ...publication, name: e.target.value }
+                      setFormData(prev => ({ ...prev, publications: newPublications }))
+                    }}
+                    placeholder="Enter publication name"
                           className="w-full"
                         />
                       </TableCell>
                       <TableCell>
-                        <Textarea
+                  <Textarea
                           value={publication.publicationDetail || ""}
-                          onChange={(e) => {
-                            const newPublications = [...formData.publications]
-                            newPublications[index] = { ...publication, publicationDetail: e.target.value }
-                            setFormData(prev => ({ ...prev, publications: newPublications }))
-                          }}
-                          placeholder="Enter publication details"
+                    onChange={(e) => {
+                      const newPublications = [...formData.publications]
+                      newPublications[index] = { ...publication, publicationDetail: e.target.value }
+                      setFormData(prev => ({ ...prev, publications: newPublications }))
+                    }}
+                    placeholder="Enter publication details"
                           rows={2}
                           className="w-full"
+                  />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="url"
+                          value={publication.link || ""}
+                          onChange={(e) => {
+                            const newPublications = [...formData.publications]
+                            newPublications[index] = { ...publication, link: e.target.value }
+                            setFormData(prev => ({ ...prev, publications: newPublications }))
+                          }}
+                          placeholder="Enter publication URL"
+                          className="w-full"
                         />
                       </TableCell>
                       <TableCell>
-                        <Select
+                  <Select
                           value={publication.status || ""}
-                          onValueChange={(value) => {
-                            const newPublications = [...formData.publications]
-                            newPublications[index] = { ...publication, status: value }
-                            setFormData(prev => ({ ...prev, publications: newPublications }))
-                          }}
-                        >
+                    onValueChange={(value) => {
+                      const newPublications = [...formData.publications]
+                      newPublications[index] = { ...publication, status: value }
+                      setFormData(prev => ({ ...prev, publications: newPublications }))
+                    }}
+                  >
                           <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select status" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {publicationStatuses.map((status) => (
-                              <SelectItem key={status} value={status}>
-                                {status}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {publicationStatuses.map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                       </TableCell>
                       <TableCell>
-                        <Button
-                          type="button"
+          <Button
+            type="button"
                           variant="ghost"
                           size="sm"
                           onClick={() => handleArrayRemove("publications", index)}
                           className="text-red-600 hover:text-red-700"
-                        >
+          >
                           <X className="h-4 w-4" />
-                        </Button>
+          </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -999,30 +1162,30 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
               <TableBody>
                 <TableRow>
                   <TableCell>
-                    <Input
-                      type="number"
+              <Input
+                type="number"
                       value={formData.budget.sanctionYear || ""}
-                      onChange={(e) => handleInputChange("budget.sanctionYear", e.target.value)}
-                      placeholder="Enter sanction year"
+                onChange={(e) => handleInputChange("budget.sanctionYear", e.target.value)}
+                placeholder="Enter sanction year"
                       className="w-full"
-                    />
+              />
                   </TableCell>
                   <TableCell>
-                    <Input
-                      type="date"
+              <Input
+                type="date"
                       value={formData.budget.date || ""}
-                      onChange={(e) => handleInputChange("budget.date", e.target.value)}
+                onChange={(e) => handleInputChange("budget.date", e.target.value)}
                       className="w-full"
-                    />
+              />
                   </TableCell>
                   <TableCell>
-                    <Input
-                      type="number"
+              <Input
+                type="number"
                       value={formData.budget.totalAmount || ""}
-                      onChange={(e) => handleInputChange("budget.totalAmount", e.target.value)}
-                      placeholder="Enter total amount"
+                onChange={(e) => handleInputChange("budget.totalAmount", e.target.value)}
+                placeholder="Enter total amount"
                       className="w-full"
-                    />
+              />
                   </TableCell>
                 </TableRow>
               </TableBody>
@@ -1031,27 +1194,224 @@ const ProjectForm = ({ project, onSubmit, onCancel, isLoading = false }) => {
         </CardContent>
       </Card>
 
-      {/* Patent Detail */}
+      {/* Patents - Multiple Patent Entries */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center">
             <FileText className="h-5 w-5 mr-2" />
-            Patent Detail
+              Patents
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => handleArrayAdd("patents", { patentDetail: "", patentDocument: null })}
+              className="bg-[#0d559e] text-white hover:bg-[#0d559e]/90 border-0"
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Add Patent
+            </Button>
           </CardTitle>
           <CardDescription>
-            Optional patent information
+            Add multiple patents with details and documents. Each patent can have its own description and file.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {formData.patents.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+              <p>No patents added yet.</p>
+              <p className="text-sm">Click "Add Patent" to add patent entries.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {formData.patents.map((patent, index) => (
+                <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-4 bg-gray-50">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-gray-900">Patent {index + 1}</h4>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleArrayRemove("patents", index)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  
+                  {/* Patent Details */}
           <div className="space-y-2">
-            <Label htmlFor="patentDetail">Patent Detail</Label>
+                    <Label htmlFor={`patentDetail-${index}`}>Patent Details</Label>
+                    <Textarea
+                      id={`patentDetail-${index}`}
+                      value={patent.patentDetail || ""}
+                      onChange={(e) => {
+                        const newPatents = [...formData.patents]
+                        newPatents[index] = { ...patent, patentDetail: e.target.value }
+                        setFormData(prev => ({ ...prev, patents: newPatents }))
+                      }}
+                      placeholder="Enter patent details, description, or information"
+                      rows={3}
+                      className="w-full"
+                    />
+                  </div>
+                  
+                  {/* Patent Document Upload for this specific patent */}
+                  <div className="space-y-2">
+                    <Label>Patent Document</Label>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Upload a document for this patent (PDF, Word, images - Max 10MB)
+                    </p>
+                    {patent.patentDocument ? (
+                      <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-center space-x-3">
+                          <FileText className="h-5 w-5 text-blue-600" />
+                          <div>
+                            <p className="text-sm font-medium">{patent.patentDocument.name}</p>
+                            <p className="text-xs text-gray-500">
+                              {(patent.patentDocument.size / 1024).toFixed(2)} KB
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const newPatents = [...formData.patents]
+                            newPatents[index] = { ...patent, patentDocument: null }
+                            setFormData(prev => ({ ...prev, patents: newPatents }))
+                          }}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <FileUpload
+                        onFilesSelected={(files) => {
+                          if (files && files.length > 0) {
+                            const newPatents = [...formData.patents]
+                            newPatents[index] = { ...patent, patentDocument: files[0] }
+                            setFormData(prev => ({ ...prev, patents: newPatents }))
+                          }
+                        }}
+                        maxFiles={1}
+                        maxSize={10 * 1024 * 1024}
+                        acceptedTypes={[
+                          "application/pdf",
+                          "application/msword",
+                          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                          "text/plain",
+                          "image/jpeg",
+                          "image/png",
+                          "image/gif",
+                        ]}
+                        disabled={isLoading}
+                      />
+                    )}
+                  </div>
+                  
+                  {/* Show existing patent document if editing and document exists */}
+                  {project && project.patents && project.patents[index] && project.patents[index].patentDocument && (
+                    <div className="space-y-2">
+                      <Label>Existing Document</Label>
+                      <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-center space-x-3">
+                          <FileText className="h-5 w-5 text-blue-600" />
+                          <div>
+                            <p className="text-sm font-medium">{project.patents[index].patentDocument.originalName}</p>
+                            <p className="text-xs text-gray-500">
+                              {(project.patents[index].patentDocument.size / 1024).toFixed(2)} KB • {new Date(project.patents[index].patentDocument.uploadedAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={async () => {
+                              try {
+                                const blob = await downloadPatentDocument({ 
+                                  projectId: project._id, 
+                                  filename: project.patents[index].patentDocument.filename 
+                                }).unwrap()
+                                
+                                const downloadUrl = window.URL.createObjectURL(blob)
+                                const a = document.createElement('a')
+                                a.href = downloadUrl
+                                a.download = project.patents[index].patentDocument.originalName
+                                document.body.appendChild(a)
+                                a.click()
+                                window.URL.revokeObjectURL(downloadUrl)
+                                document.body.removeChild(a)
+                              } catch (error) {
+                                console.error("Download error:", error)
+                                alert("Failed to download document")
+                              }
+                            }}
+                            disabled={isLoading || isDeletingPatent}
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={async () => {
+                              if (window.confirm(`Are you sure you want to delete "${project.patents[index].patentDocument.originalName}"?`)) {
+                                try {
+                                  const deleteResult = await deletePatentDocument({ 
+                                    projectId: project._id, 
+                                    filename: project.patents[index].patentDocument.filename 
+                                  }).unwrap()
+                                  
+                                  // If the delete result includes the updated project, use it to update the parent
+                                  if (deleteResult?.project && onProjectUpdate) {
+                                    onProjectUpdate(deleteResult.project)
+                                  } else {
+                                    // Fallback: reload the page if callback not available
+                                    window.location.reload()
+                                  }
+                                  
+                                  alert("Document deleted successfully")
+                                } catch (error) {
+                                  console.error("Failed to delete document:", error)
+                                  alert(`Failed to delete document: ${error?.data?.message || error?.message || 'Unknown error'}`)
+                                }
+                              }
+                            }}
+                            disabled={isLoading || isDeletingPatent}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {/* Legacy Patent Detail (for backward compatibility) */}
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <div className="space-y-2">
+              <Label htmlFor="patentDetail">Legacy Patent Detail (Optional)</Label>
             <Textarea
               id="patentDetail"
               value={formData.patentDetail}
               onChange={(e) => handleInputChange("patentDetail", e.target.value)}
-              placeholder="Enter patent details"
-              rows={4}
+                placeholder="Enter general patent details (legacy field)"
+                rows={3}
             />
+              <p className="text-xs text-gray-500">
+                This field is kept for backward compatibility. Use the "Patents" section above for new entries.
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>

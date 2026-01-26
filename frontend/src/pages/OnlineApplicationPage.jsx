@@ -144,7 +144,8 @@ const OnlineApplicationPage = () => {
       })
 
       // Submit to API
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/online-applications`, {
+      const apiUrl = process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'production' ? '/api' : 'http://72.60.206.223:5000/api')
+      const response = await fetch(`${apiUrl}/online-applications`, {
         method: 'POST',
         body: submitData
       })
@@ -206,7 +207,7 @@ const OnlineApplicationPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Header />
 
       {/* Hero Section */}

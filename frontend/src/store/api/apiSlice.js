@@ -1,8 +1,21 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react"
 import { logout, setCredentials } from "../slices/authSlice"
 
+// Use relative path in production (same domain), absolute URL in development
+const getApiUrl = () => {
+  if (process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL
+  }
+  // In production, use relative path since frontend and backend are on same domain
+  if (process.env.NODE_ENV === 'production') {
+    return '/api'
+  }
+  // In development, use the IP address
+  return "http://72.60.206.223:5000/api"
+}
+
 const baseQuery = fetchBaseQuery({
-  baseUrl: process.env.REACT_APP_API_URL || "http://72.60.206.223:5000/api",
+  baseUrl: getApiUrl(),
   credentials: "include",
   prepareHeaders: (headers, { getState }) => {
     const token = getState().auth.token

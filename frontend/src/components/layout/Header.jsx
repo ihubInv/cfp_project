@@ -52,7 +52,7 @@ const Header = () => {
             </div> */}
 
             {/* Main Header */}
-            <header className="bg-white shadow-lg fixed top-0 left-0 right-0 z-50">
+            <header className="glass-header fixed top-0 left-0 right-0 z-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-20">
                         {/* Logo */}
@@ -64,8 +64,8 @@ const Header = () => {
                                     className="w-24 h-24 object-contain"
                                 />
                                 <div>
-                                    <h1 className="text-xl font-bold text-gray-900">IIT Mandi iHub & HCi Foundation</h1>
-                                    <p className="text-sm text-gray-600">CFP Portal</p>
+                                    <h1 className="text-xl font-bold text-gray-900">Call for Proposals (CfP)</h1>
+                                    <p className="text-sm text-gray-600">Portal</p>
                                 </div>
                             </Link>
                         </div>
@@ -181,7 +181,7 @@ const Header = () => {
 
                 {/* Mobile Menu */}
                 {isMobileMenuOpen && (
-                    <div className="md:hidden bg-white border-t">
+                    <div className="md:hidden glass-section border-t">
                         <div className="px-4 py-2 space-y-2">
                             <Link to="/" className="block py-2 text-gray-700 hover:text-blue-600">
                                 Home

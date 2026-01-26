@@ -74,7 +74,10 @@ export const adminApi = apiSlice.injectEndpoints({
         method: "PUT",
         body: projectData,
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: "Project", id }],
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Project", id },
+        "Project", // Also invalidate the list query
+      ],
     }),
     deleteProject: builder.mutation({
       query: (id) => ({

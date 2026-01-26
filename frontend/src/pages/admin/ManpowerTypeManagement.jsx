@@ -137,14 +137,19 @@ const ManpowerTypeManagement = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen p-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Manpower Type Management</h1>
-          <p className="text-gray-600">Manage different types of manpower for projects</p>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+            Manpower Type Management
+          </h1>
+          <p className="text-gray-600 text-lg">Manage different types of manpower for projects</p>
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
+        <Button 
+          onClick={() => setIsCreateDialogOpen(true)}
+          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+        >
           <Plus className="h-4 w-4 mr-2" />
           Add Manpower Type
         </Button>
@@ -153,49 +158,70 @@ const ManpowerTypeManagement = () => {
       {/* Statistics */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Types</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+          <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 border-transparent hover:border-blue-200 overflow-hidden relative bg-gradient-to-br from-white to-blue-50/30">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+              <CardTitle className="text-sm font-semibold text-gray-700 group-hover:text-blue-700 transition-colors">Total Types</CardTitle>
+              <div className="bg-blue-100 group-hover:bg-blue-200 rounded-full p-2 transition-all duration-300 group-hover:scale-110">
+                <Users className="h-4 w-4 text-blue-600" />
+              </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.total}</div>
+            <CardContent className="relative z-10">
+              <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300 inline-block">
+                {stats.total}
+              </div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Types</CardTitle>
+          <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 border-transparent hover:border-green-200 overflow-hidden relative bg-gradient-to-br from-white to-green-50/30">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+              <CardTitle className="text-sm font-semibold text-gray-700 group-hover:text-green-700 transition-colors">Active Types</CardTitle>
+              <div className="bg-green-100 group-hover:bg-green-200 rounded-full p-2 transition-all duration-300 group-hover:scale-110">
               <CheckCircle className="h-4 w-4 text-green-600" />
+              </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{stats.active}</div>
+            <CardContent className="relative z-10">
+              <div className="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300 inline-block">
+                {stats.active}
+              </div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Inactive Types</CardTitle>
+          <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 border-transparent hover:border-red-200 overflow-hidden relative bg-gradient-to-br from-white to-red-50/30">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-red-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+              <CardTitle className="text-sm font-semibold text-gray-700 group-hover:text-red-700 transition-colors">Inactive Types</CardTitle>
+              <div className="bg-red-100 group-hover:bg-red-200 rounded-full p-2 transition-all duration-300 group-hover:scale-110">
               <XCircle className="h-4 w-4 text-red-600" />
+              </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-600">{stats.inactive}</div>
+            <CardContent className="relative z-10">
+              <div className="text-3xl font-bold bg-gradient-to-r from-red-600 to-red-700 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300 inline-block">
+                {stats.inactive}
+              </div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Categories</CardTitle>
-              <Filter className="h-4 w-4 text-muted-foreground" />
+          <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 border-transparent hover:border-purple-200 overflow-hidden relative bg-gradient-to-br from-white to-purple-50/30">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+              <CardTitle className="text-sm font-semibold text-gray-700 group-hover:text-purple-700 transition-colors">Categories</CardTitle>
+              <div className="bg-purple-100 group-hover:bg-purple-200 rounded-full p-2 transition-all duration-300 group-hover:scale-110">
+                <Filter className="h-4 w-4 text-purple-600" />
+              </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.byCategory?.length || 0}</div>
+            <CardContent className="relative z-10">
+              <div className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-700 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300 inline-block">
+                {stats.byCategory?.length || 0}
+              </div>
             </CardContent>
           </Card>
         </div>
       )}
 
       {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filters</CardTitle>
+      <Card className="group hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-blue-200 overflow-hidden relative bg-gradient-to-br from-white to-blue-50/20">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-400/10 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <CardHeader className="relative z-10">
+          <CardTitle className="text-lg font-bold text-gray-800 group-hover:text-blue-700 transition-colors">Filters</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -245,12 +271,15 @@ const ManpowerTypeManagement = () => {
       </Card>
 
       {/* Manpower Types Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Manpower Types ({manpowerTypes?.data?.length || 0})</CardTitle>
-          <CardDescription>Manage different types of manpower available for projects</CardDescription>
+      <Card className="group hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-purple-200 overflow-hidden relative bg-gradient-to-br from-white to-purple-50/20">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-400/10 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <CardHeader className="relative z-10">
+          <CardTitle className="text-lg font-bold text-gray-800 group-hover:text-purple-700 transition-colors">
+            Manpower Types <span className="text-purple-600">({manpowerTypes?.data?.length || 0})</span>
+          </CardTitle>
+          <CardDescription className="text-gray-600">Manage different types of manpower available for projects</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="relative z-10">
           <Table>
             <TableHeader>
               <TableRow>
@@ -265,19 +294,22 @@ const ManpowerTypeManagement = () => {
             </TableHeader>
             <TableBody>
               {manpowerTypes?.data?.map((manpowerType) => (
-                <TableRow key={manpowerType._id}>
-                  <TableCell className="font-medium">{manpowerType.name}</TableCell>
-                  <TableCell className="max-w-xs truncate">{manpowerType.description || "No description"}</TableCell>
+                <TableRow 
+                  key={manpowerType._id}
+                  className="group/row hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 transition-all duration-300 cursor-pointer hover:shadow-md"
+                >
+                  <TableCell className="font-medium group-hover/row:text-gray-900 transition-colors">{manpowerType.name}</TableCell>
+                  <TableCell className="max-w-xs truncate group-hover/row:text-gray-700 transition-colors">{manpowerType.description || "No description"}</TableCell>
                   <TableCell>{getCategoryBadge(manpowerType.category)}</TableCell>
                   <TableCell>
                     <Badge variant={manpowerType.isActive ? "default" : "secondary"}>
                       {manpowerType.isActive ? "Active" : "Inactive"}
                     </Badge>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="group-hover/row:text-gray-700 transition-colors">
                     {manpowerType.createdBy?.firstName} {manpowerType.createdBy?.lastName}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="group-hover/row:text-gray-600 transition-colors">
                     {new Date(manpowerType.createdAt).toLocaleDateString()}
                   </TableCell>
                   <TableCell>
@@ -287,6 +319,7 @@ const ManpowerTypeManagement = () => {
                         size="sm"
                         onClick={() => openEditDialog(manpowerType)}
                         title="Edit manpower type"
+                        className="hover:bg-green-100 hover:text-green-700 transition-all duration-300 hover:scale-110"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -296,7 +329,7 @@ const ManpowerTypeManagement = () => {
                         onClick={() => handleDelete(manpowerType._id)}
                         disabled={isDeleting}
                         title="Delete manpower type"
-                        className="text-red-600 hover:text-red-700"
+                        className="text-red-600 hover:bg-red-100 hover:text-red-700 transition-all duration-300 hover:scale-110 disabled:opacity-50"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

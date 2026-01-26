@@ -24,6 +24,40 @@ export function formatCurrencyInCrores(amount) {
 }
 
 /**
+ * Format currency in Indian Rupees (Lakhs or Crores based on amount)
+ * @param {number} amount - Amount in rupees
+ * @returns {string} Formatted string (e.g., "₹5.25 Cr" or "₹25.50 L")
+ */
+export function formatCurrencyInLakhsOrCrores(amount) {
+  if (!amount || amount === 0) return "₹0"
+  
+  // 1 Crore = 1,00,00,000 (10,000,000)
+  // 1 Lakh = 1,00,000 (100,000)
+  
+  if (amount >= 10000000) {
+    // Show in Crores
+    const crores = amount / 10000000
+    return `₹${crores.toLocaleString('en-IN', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 3
+    })} Cr`
+  } else if (amount >= 100000) {
+    // Show in Lakhs
+    const lakhs = amount / 100000
+    return `₹${lakhs.toLocaleString('en-IN', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })} Lakh`
+  } else {
+    // Show in thousands or rupees
+    return `₹${amount.toLocaleString('en-IN', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    })}`
+  }
+}
+
+/**
  * Format currency in Indian Rupees (standard format)
  * @param {number} amount - Amount in rupees
  * @returns {string} Formatted string (e.g., "₹1,00,00,000")

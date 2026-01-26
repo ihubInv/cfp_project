@@ -16,7 +16,7 @@ import {
 
 const AboutPage = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Header />
 
       {/* Hero Section */}
@@ -87,27 +87,6 @@ const AboutPage = () => {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Vision Card */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center">
-            <Card className="shadow-lg border-0 max-w-2xl">
-              <CardHeader className="bg-gradient-to-r from-[#0d559e] to-[#004d8c] text-white rounded-t-lg">
-                <CardTitle className="flex items-center">
-                  <Lightbulb className="w-6 h-6 mr-3" />
-                  Our Vision
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <p className="text-gray-700 leading-relaxed text-center">
-                  To be an internationally recognized hub that nurtures HCi research, enables technology translation for industry, and scales skill development.
-                </p>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </section>

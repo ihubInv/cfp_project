@@ -36,7 +36,7 @@ const getDisciplineById = async (req, res) => {
 // Create new discipline
 const createDiscipline = async (req, res) => {
     try {
-        const { name, description } = req.body
+        const { name, description, isActive } = req.body
 
         // Check if discipline already exists
         const existingDiscipline = await Category.findOne({ 
@@ -52,6 +52,7 @@ const createDiscipline = async (req, res) => {
         const disciplineData = {
             name: name.trim(),
             description: description?.trim() || "",
+            isActive: isActive !== undefined ? isActive : true,
             createdBy: req.user._id,
         }
 

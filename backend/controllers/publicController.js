@@ -10,54 +10,49 @@ const getFundingStats = async (req, res) => {
         // Get current year
         const currentYear = new Date().getFullYear()
         
-        // Ongoing projects statistics (using validationStatus)
+        // Ongoing projects statistics (check validationStatus field)
         const ongoingProjects = await Project.aggregate([
-            { $match: { validationStatus: "Ongoing" } },
+            { 
+                $match: { 
+                    $or: [
+                        { validationStatus: "Ongoing" },
+                        { $and: [
+                            { $or: [{ validationStatus: { $exists: false } }, { validationStatus: null }] },
+                            { status: { $in: ["Ongoing", "ongoing", "ONGOING"] } }
+                        ]}
+                    ]
+                } 
+            },
             {
                 $group: {
-                    _id: "$scheme",
+                    _id: { $ifNull: ["$scheme", "Other"] },
                     count: { $sum: 1 },
-                    totalFunding: { $sum: "$budget.totalAmount" }
+                    totalFunding: { $sum: { $ifNull: ["$budget.totalAmount", 0] } }
                 }
             },
             { $sort: { count: -1 } }
         ])
 
-        // Proposals received this year
+        // Proposals received (all time, not just current year)
+        // Handle null/empty schemes by grouping them as "Other" or the scheme name
         const proposalsReceived = await Project.aggregate([
-            { 
-                $match: { 
-                    createdAt: { 
-                        $gte: new Date(`${currentYear}-01-01`),
-                        $lt: new Date(`${currentYear + 1}-01-01`)
-                    }
-                } 
-            },
             {
                 $group: {
-                    _id: "$scheme",
+                    _id: { $ifNull: ["$scheme", "Other"] },
                     count: { $sum: 1 },
-                    totalFunding: { $sum: "$budget.totalAmount" }
+                    totalFunding: { $sum: { $ifNull: ["$budget.totalAmount", 0] } }
                 }
             },
             { $sort: { count: -1 } }
         ])
 
-        // Proposals supported this year
+        // Proposals supported/approved (all time, not just current year)
         const proposalsSupported = await Project.aggregate([
-            { 
-                $match: { 
-                    createdAt: { 
-                        $gte: new Date(`${currentYear}-01-01`),
-                        $lt: new Date(`${currentYear + 1}-01-01`)
-                    }
-                } 
-            },
             {
                 $group: {
-                    _id: "$scheme",
+                    _id: { $ifNull: ["$scheme", "Other"] },
                     count: { $sum: 1 },
-                    totalFunding: { $sum: "$budget.totalAmount" }
+                    totalFunding: { $sum: { $ifNull: ["$budget.totalAmount", 0] } }
                 }
             },
             { $sort: { count: -1 } }
@@ -98,23 +93,31 @@ const getFundingStats = async (req, res) => {
             { $match: { manpowerSanctioned: { $exists: true, $ne: [] } } },
             { $unwind: "$manpowerSanctioned" },
             { $group: { _id: null, totalManpower: { $sum: { $ifNull: ["$manpowerSanctioned.number", 0] } } } }
-        ])
+            ])
         const manpowerCount = manpowerResult.length > 0 ? manpowerResult[0].totalManpower : 0
 
         const projectOutput = [publicationsCount, equipmentCount, manpowerCount]
 
-        // Overall statistics - get real-time counts
+        // Get total count of ALL projects first (this is the source of truth)
+        const totalProjectsCount = await Project.countDocuments()
+
+        // Overall statistics - get real-time counts (all time, not just current year)
         const overallStats = await Promise.all([
-            // Active/Ongoing projects
-            Project.countDocuments({ validationStatus: "Ongoing" }),
-            // Completed projects
-            Project.countDocuments({ validationStatus: "Completed" }),
-            // Proposals received this year
+            // Active/Ongoing projects - check validationStatus field (mapped from status in frontend)
+            // Also check status field as fallback for backward compatibility
             Project.countDocuments({ 
-                createdAt: { 
-                    $gte: new Date(`${currentYear}-01-01`),
-                    $lt: new Date(`${currentYear + 1}-01-01`)
-                }
+                $or: [
+                    { validationStatus: "Ongoing" },
+                    { $and: [
+                        { $or: [{ validationStatus: { $exists: false } }, { validationStatus: null }] },
+                        { status: { $in: ["Ongoing", "ongoing", "ONGOING"] } }
+                    ]}
+                ]
+            }),
+            // Completed projects - check validationStatus field (primary)
+            // This is set by the admin panel when Project Status is set to "Completed"
+            Project.countDocuments({ 
+                validationStatus: "Completed"
             }),
             // Total funding
             Project.aggregate([
@@ -122,29 +125,72 @@ const getFundingStats = async (req, res) => {
             ])
         ])
 
-        res.json({
+        // Debug: Check projects with Completed validationStatus
+        const completedProjectsDebug = await Project.find({ 
+            validationStatus: "Completed"
+        }).select("_id title validationStatus status fileNumber").limit(10)
+        
+        console.log("=== Sample Completed Projects ===")
+        console.log("Found", completedProjectsDebug.length, "completed projects (showing first 10):")
+        completedProjectsDebug.forEach(p => {
+            console.log(`  - File: ${p.fileNumber || p._id}, Title: "${p.title || 'N/A'}", validationStatus="${p.validationStatus}", status="${p.status || 'N/A'}"`)
+        })
+        
+        // Also check if there are any projects with status="Completed" but validationStatus not set
+        const legacyCompleted = await Project.countDocuments({ 
+            validationStatus: { $ne: "Completed" },
+            status: "Completed"
+        })
+        if (legacyCompleted > 0) {
+            console.log(`⚠️  WARNING: Found ${legacyCompleted} projects with status="Completed" but validationStatus is not "Completed". These need to be updated.`)
+        }
+        
+        // Debug logging - comprehensive
+        console.log("=== Funding Stats Debug ===")
+        console.log("Total Projects in DB:", totalProjectsCount)
+        console.log("Active/Ongoing Projects:", overallStats[0])
+        console.log("Completed Projects:", overallStats[1])
+        console.log("Total Funding:", overallStats[2][0]?.totalFunding || 0)
+        console.log("Proposals Received programs count:", proposalsReceived.length)
+        console.log("Proposals Received programs:", JSON.stringify(proposalsReceived, null, 2))
+        console.log("Proposals Supported programs count:", proposalsSupported.length)
+        console.log("Proposals Supported programs:", JSON.stringify(proposalsSupported, null, 2))
+        
+        // Verify: Sum of programs should equal total projects
+        const proposalsReceivedSum = proposalsReceived.reduce((sum, p) => sum + p.count, 0)
+        const proposalsSupportedSum = proposalsSupported.reduce((sum, p) => sum + p.count, 0)
+        console.log("Proposals Received sum:", proposalsReceivedSum, "vs Total:", totalProjectsCount)
+        console.log("Proposals Supported sum:", proposalsSupportedSum, "vs Total:", totalProjectsCount)
+
+        // Ensure we always return data, even if arrays are empty
+        const response = {
             ongoingProjects: {
-                total: overallStats[0],
-                programs: ongoingProjects
+                total: overallStats[0] || 0,
+                programs: ongoingProjects || []
             },
-            completedProjects: overallStats[1], // Add completed projects count
-            activeProjects: overallStats[0], // Alias for active projects
+            completedProjects: overallStats[1] || 0, // Add completed projects count
+            activeProjects: overallStats[0] || 0, // Alias for active projects
             proposalsReceived: {
-                total: overallStats[2],
-                programs: proposalsReceived
+                total: totalProjectsCount || 0, // Use direct count from database
+                programs: proposalsReceived && proposalsReceived.length > 0 ? proposalsReceived : []
             },
             proposalsSupported: {
-                total: overallStats[2],
-                programs: proposalsSupported
+                total: totalProjectsCount || 0, // Use direct count from database
+                programs: proposalsSupported && proposalsSupported.length > 0 ? proposalsSupported : []
             },
             projectOutput: {
                 publications: projectOutput[0] || 0, // Count from aggregation (already handled)
                 equipment: projectOutput[1] || 0,
                 manpower: projectOutput[2] || 0
             },
-            totalFunding: overallStats[3][0]?.totalFunding || 0,
+            totalFunding: overallStats[2][0]?.totalFunding || 0,
             year: currentYear
-        })
+        }
+        
+        console.log("=== Response being sent ===")
+        console.log(JSON.stringify(response, null, 2))
+        
+        res.json(response)
     } catch (error) {
         console.error("Error fetching funding stats:", error)
         res.status(500).json({ message: "Server error", error: error.message })

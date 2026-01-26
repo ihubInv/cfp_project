@@ -22,6 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../../components/ui/dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
 import { Plus, Edit, Trash2, RefreshCw, Tag } from "lucide-react"
 
 const DisciplineManagement = () => {
@@ -30,6 +31,7 @@ const DisciplineManagement = () => {
   const [disciplineData, setDisciplineData] = useState({
     name: "",
     description: "",
+    isActive: true,
   })
 
   const { data: disciplines, isLoading, error, refetch } = useGetDisciplinesQuery({ isActive: false })
@@ -42,7 +44,7 @@ const DisciplineManagement = () => {
     try {
       await createDiscipline(disciplineData).unwrap()
       setDisciplineDialog(false)
-      setDisciplineData({ name: "", description: "" })
+      setDisciplineData({ name: "", description: "", isActive: true })
     } catch (error) {
       console.error("Failed to create discipline:", error)
       alert(`Failed to create discipline: ${error?.data?.message || error?.message || 'Unknown error'}`)
@@ -57,7 +59,7 @@ const DisciplineManagement = () => {
       }).unwrap()
       setDisciplineDialog(false)
       setEditingDiscipline(null)
-      setDisciplineData({ name: "", description: "" })
+      setDisciplineData({ name: "", description: "", isActive: true })
     } catch (error) {
       console.error("Failed to update discipline:", error)
       alert(`Failed to update discipline: ${error?.data?.message || error?.message || 'Unknown error'}`)
@@ -91,13 +93,14 @@ const DisciplineManagement = () => {
     setDisciplineData({
       name: discipline.name,
       description: discipline.description || "",
+      isActive: discipline.isActive !== undefined ? discipline.isActive : true,
     })
     setDisciplineDialog(true)
   }
 
   const handleNewDiscipline = () => {
     setEditingDiscipline(null)
-    setDisciplineData({ name: "", description: "" })
+    setDisciplineData({ name: "", description: "", isActive: true })
     setDisciplineDialog(true)
   }
 
@@ -110,18 +113,20 @@ const DisciplineManagement = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen p-6">
       {/* Header */}
-      <div className="flex justify-between items-start">
+      <div className="flex justify-between items-start mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Discipline Management</h1>
-          <p className="text-gray-600">Manage project disciplines and research domains</p>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+            Discipline Management
+          </h1>
+          <p className="text-gray-600 text-lg">Manage project disciplines and research domains</p>
         </div>
         <div className="flex gap-2">
           <Button 
             onClick={() => refetch()} 
             variant="outline"
-            className="border-[#0d559e] text-[#0d559e] hover:bg-[#0d559e] hover:text-white"
+            className="border-2 border-blue-600 text-blue-600 hover:bg-gradient-to-r hover:from-blue-600 hover:to-blue-700 hover:text-white transition-all duration-300 hover:scale-105"
           >
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
@@ -131,12 +136,15 @@ const DisciplineManagement = () => {
               onClick={handleInitializeDefault}
               disabled={isInitializing}
               variant="outline"
-              className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
+              className="border-2 border-green-600 text-green-600 hover:bg-gradient-to-r hover:from-green-600 hover:to-green-700 hover:text-white transition-all duration-300 hover:scale-105"
             >
               {isInitializing ? "Initializing..." : "Initialize Default"}
             </Button>
           )}
-          <Button onClick={handleNewDiscipline} className="bg-[#0d559e] hover:bg-[#0d559e]/90">
+          <Button 
+            onClick={handleNewDiscipline} 
+            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+          >
             <Plus className="h-4 w-4 mr-2" />
             Add Discipline
           </Button>
@@ -144,13 +152,14 @@ const DisciplineManagement = () => {
       </div>
 
       {/* Categories Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
+      <Card className="group hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-purple-200 overflow-hidden relative bg-gradient-to-br from-white to-purple-50/20">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-400/10 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <CardHeader className="relative z-10">
+          <CardTitle className="flex items-center text-lg font-bold text-gray-800 group-hover:text-purple-700 transition-colors">
             <Tag className="h-5 w-5 mr-2" />
-            Project Disciplines ({disciplines?.length || 0})
+            Project Disciplines <span className="text-purple-600">({disciplines?.length || 0})</span>
           </CardTitle>
-          <CardDescription>Manage all project disciplines and research domains</CardDescription>
+          <CardDescription className="text-gray-600">Manage all project disciplines and research domains</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -280,13 +289,34 @@ const DisciplineManagement = () => {
               />
             </div>
 
+            <div>
+              <Label htmlFor="disciplineStatus">Status *</Label>
+              <Select
+                value={disciplineData.isActive ? "active" : "inactive"}
+                onValueChange={(value) => {
+                  setDisciplineData(prev => ({ ...prev, isActive: value === "active" }))
+                }}
+              >
+                <SelectTrigger id="disciplineStatus" className="w-full">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500 mt-1">
+                Active disciplines are available for selection in projects. Inactive disciplines are hidden but not deleted.
+              </p>
+            </div>
+
             <div className="flex justify-end space-x-2">
               <Button
                 variant="outline"
                 onClick={() => {
                   setDisciplineDialog(false)
                   setEditingDiscipline(null)
-                  setDisciplineData({ name: "", description: "" })
+                  setDisciplineData({ name: "", description: "", isActive: true })
                 }}
               >
                 Cancel

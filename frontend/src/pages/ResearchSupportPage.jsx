@@ -9,7 +9,6 @@ import {
   Users, 
   Award, 
   FileText, 
-  Calendar,
   DollarSign,
   Target,
   TrendingUp,
@@ -66,32 +65,8 @@ const ResearchSupportPage = () => {
     }
   ]
 
-  const fundingPrograms = [
-    {
-      name: "SERB Core Research Grant",
-      amount: "Up to ₹50 Lakhs",
-      duration: "3 Years",
-      deadline: "March 2025",
-      description: "Support for fundamental research in frontier areas"
-    },
-    {
-      name: "DST Technology Development",
-      amount: "Up to ₹1 Crore",
-      duration: "5 Years",
-      deadline: "April 2025",
-      description: "Technology development and commercialization projects"
-    },
-    {
-      name: "Industry Collaborative Research",
-      amount: "Variable",
-      duration: "2-4 Years",
-      deadline: "Ongoing",
-      description: "Joint research projects with industry partners"
-    }
-  ]
-
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Header />
 
       {/* Hero Section */}
@@ -142,48 +117,6 @@ const ResearchSupportPage = () => {
                       </li>
                     ))}
                   </ul>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Funding Programs */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Current Funding Programs</h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Explore our current funding opportunities and apply for research support
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {fundingPrograms.map((program, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle className="text-lg">{program.name}</CardTitle>
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <Calendar className="h-4 w-4" />
-                    <span>Deadline: {program.deadline}</span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-700">Amount:</span>
-                      <span className="text-sm text-green-600 font-semibold">{program.amount}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-700">Duration:</span>
-                      <span className="text-sm text-gray-600">{program.duration}</span>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-3">{program.description}</p>
-                    <Button className="w-full mt-4" variant="outline">
-                      Learn More
-                    </Button>
-                  </div>
                 </CardContent>
               </Card>
             ))}

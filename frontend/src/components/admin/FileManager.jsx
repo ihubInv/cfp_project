@@ -30,7 +30,8 @@ const FileManager = ({ projectId, projectTitle }) => {
     console.log("FileManager - filesData:", filesData)
     console.log("FileManager - isLoading:", isLoading)
     console.log("FileManager - error:", error)
-    console.log("FileManager - API URL:", process.env.REACT_APP_API_URL || "http://localhost:5000/api")
+    const apiUrl = process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'production' ? '/api' : 'http://72.60.206.223:5000/api')
+    console.log("FileManager - API URL:", apiUrl)
 
     const handleUpload = async () => {
         if (selectedFiles.length === 0) {

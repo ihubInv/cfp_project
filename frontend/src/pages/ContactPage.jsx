@@ -14,8 +14,6 @@ import {
   Clock, 
   Send,
   MessageSquare,
-  Users,
-  Building,
   Globe
 } from "lucide-react"
 
@@ -86,30 +84,9 @@ const ContactPage = () => {
     }
   ]
 
-  const departments = [
-    {
-      name: "Research Support",
-      email: "research@ihubiitmandi.in",
-      phone: "+91-1905-237-001",
-      description: "For research funding and project support inquiries"
-    },
-    {
-      name: "Technical Support",
-      email: "tech@ihubiitmandi.in",
-      phone: "+91-1905-237-002",
-      description: "For technical assistance and equipment access"
-    },
-    {
-      name: "Administration",
-      email: "admin@ihubiitmandi.in",
-      phone: "+91-1905-237-003",
-      description: "For general administrative inquiries"
-    },
-    
-  ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Header />
 
       {/* Hero Section */}
@@ -156,12 +133,10 @@ const ContactPage = () => {
         </div>
       </section>
 
-      {/* Contact Form and Departments */}
+      {/* Contact Form */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Contact Form */}
-            <div>
+          <div className="max-w-2xl mx-auto">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
@@ -247,43 +222,6 @@ const ContactPage = () => {
                   </form>
                 </CardContent>
               </Card>
-            </div>
-
-            {/* Departments */}
-            <div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">Contact by Department</h3>
-              <div className="space-y-4">
-                {departments.map((dept, index) => (
-                  <Card key={index} className="hover:shadow-lg transition-shadow">
-                    <CardContent className="p-6">
-                      <div className="flex items-start space-x-4">
-                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <Building className="h-5 w-5 text-[#0d559e]" />
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="text-lg font-semibold mb-2">{dept.name}</h4>
-                          <p className="text-sm text-gray-600 mb-3">{dept.description}</p>
-                          <div className="space-y-1">
-                            <div className="flex items-center text-sm text-gray-700">
-                              <Mail className="h-4 w-4 mr-2" />
-                              <a href={`mailto:${dept.email}`} className="hover:text-[#0d559e]">
-                                {dept.email}
-                              </a>
-                            </div>
-                            <div className="flex items-center text-sm text-gray-700">
-                              <Phone className="h-4 w-4 mr-2" />
-                              <a href={`tel:${dept.phone}`} className="hover:text-[#0d559e]">
-                                {dept.phone}
-                              </a>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
       </section>

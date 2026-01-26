@@ -159,7 +159,8 @@ const OnlineApplicationsAdmin = () => {
       console.log("Application ID:", applicationId)
       console.log("Document Type:", documentType)
       
-      const url = `${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/online-applications/${applicationId}/download/${documentType}`
+      const apiUrl = process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'production' ? '/api' : 'http://72.60.206.223:5000/api')
+      const url = `${apiUrl}/online-applications/${applicationId}/download/${documentType}`
       console.log("Download URL:", url)
       
       const response = await fetch(url, {
@@ -290,12 +291,14 @@ const OnlineApplicationsAdmin = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen p-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Online Applications</h1>
-            <p className="text-gray-600">Manage research proposal applications</p>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+              Online Applications
+            </h1>
+            <p className="text-gray-600 text-lg">Manage research proposal applications</p>
           </div>
           <div className="flex items-center gap-4">
             <Button

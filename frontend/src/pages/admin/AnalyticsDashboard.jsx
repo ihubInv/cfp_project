@@ -117,16 +117,18 @@ const AnalyticsDashboard = () => {
     })) || []
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen p-6">
       {/* Page Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Advanced Analytics</h1>
-          <p className="text-gray-600">Comprehensive insights and performance metrics</p>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+            Advanced Analytics
+          </h1>
+          <p className="text-gray-600 text-lg">Comprehensive insights and performance metrics</p>
         </div>
         <div className="flex space-x-2">
           <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-40 border-2 border-gray-300 hover:border-blue-600 transition-colors">
               <SelectValue placeholder="Time Range" />
             </SelectTrigger>
             <SelectContent>
@@ -136,7 +138,11 @@ const AnalyticsDashboard = () => {
               <SelectItem value="month">This Month</SelectItem>
             </SelectContent>
           </Select>
-          <Button onClick={exportData} variant="outline">
+          <Button 
+            onClick={exportData} 
+            variant="outline"
+            className="border-2 border-blue-600 text-blue-600 hover:bg-gradient-to-r hover:from-blue-600 hover:to-blue-700 hover:text-white transition-all duration-300 hover:scale-105"
+          >
             <Download className="mr-2 h-4 w-4" />
             Export
           </Button>
@@ -145,58 +151,78 @@ const AnalyticsDashboard = () => {
 
       {/* Enhanced KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Investment</CardTitle>
+        <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 border-transparent hover:border-green-200 overflow-hidden relative bg-gradient-to-br from-white to-green-50/30">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+            <CardTitle className="text-sm font-semibold text-gray-700 group-hover:text-green-700 transition-colors">Total Investment</CardTitle>
+            <div className="bg-green-100 group-hover:bg-green-200 rounded-full p-2 transition-all duration-300 group-hover:scale-110">
             <DollarSign className="h-4 w-4 text-green-600" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatFullCurrency(totalFunding)}</div>
-            <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+          <CardContent className="relative z-10">
+            <div className="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300 inline-block">
+              {formatFullCurrency(totalFunding)}
+            </div>
+            <div className="flex items-center space-x-2 text-xs text-gray-600 group-hover:text-gray-700 transition-colors mt-2">
               <TrendingUp className="h-3 w-3 text-green-500" />
               <span>+12.5% from last period</span>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Project Portfolio</CardTitle>
+        <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 border-transparent hover:border-blue-200 overflow-hidden relative bg-gradient-to-br from-white to-blue-50/30">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+            <CardTitle className="text-sm font-semibold text-gray-700 group-hover:text-blue-700 transition-colors">Project Portfolio</CardTitle>
+            <div className="bg-blue-100 group-hover:bg-blue-200 rounded-full p-2 transition-all duration-300 group-hover:scale-110">
             <FolderOpen className="h-4 w-4 text-blue-600" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalProjects}</div>
-            <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-              <Badge variant="outline" className="text-xs">
+          <CardContent className="relative z-10">
+            <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300 inline-block">
+              {totalProjects}
+            </div>
+            <div className="flex items-center space-x-2 text-xs text-gray-600 group-hover:text-gray-700 transition-colors mt-2">
+              <Badge variant="outline" className="text-xs border-blue-300 text-blue-700">
                 {stats?.overview?.ongoingProjects} Active
               </Badge>
-              <Badge variant="secondary" className="text-xs">
+              <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700">
                 {stats?.overview?.completedProjects} Complete
               </Badge>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Project Value</CardTitle>
+        <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 border-transparent hover:border-purple-200 overflow-hidden relative bg-gradient-to-br from-white to-purple-50/30">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+            <CardTitle className="text-sm font-semibold text-gray-700 group-hover:text-purple-700 transition-colors">Average Project Value</CardTitle>
+            <div className="bg-purple-100 group-hover:bg-purple-200 rounded-full p-2 transition-all duration-300 group-hover:scale-110">
             <TrendingUp className="h-4 w-4 text-purple-600" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatFullCurrency(avgProjectValue)}</div>
-            <div className="text-xs text-muted-foreground">
+          <CardContent className="relative z-10">
+            <div className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-700 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300 inline-block">
+              {formatFullCurrency(avgProjectValue)}
+            </div>
+            <div className="text-xs text-gray-600 group-hover:text-gray-700 transition-colors mt-2">
               Range: {formatCurrency(50000)} - {formatCurrency(5000000)}
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+        <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 border-transparent hover:border-orange-200 overflow-hidden relative bg-gradient-to-br from-white to-orange-50/30">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+            <CardTitle className="text-sm font-semibold text-gray-700 group-hover:text-orange-700 transition-colors">Success Rate</CardTitle>
+            <div className="bg-orange-100 group-hover:bg-orange-200 rounded-full p-2 transition-all duration-300 group-hover:scale-110">
             <Users className="h-4 w-4 text-orange-600" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{completionRate.toFixed(1)}%</div>
+          <CardContent className="relative z-10">
+            <div className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300 inline-block">
+              {completionRate.toFixed(1)}%
+            </div>
             <div className="text-xs text-muted-foreground">Project completion rate</div>
           </CardContent>
         </Card>
@@ -205,12 +231,13 @@ const AnalyticsDashboard = () => {
       {/* Advanced Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Multi-metric Funding Analysis */}
-        <Card>
-          <CardHeader>
+        <Card className="group hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-blue-200 overflow-hidden relative bg-gradient-to-br from-white to-blue-50/20">
+          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-400/10 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <CardHeader className="relative z-10">
             <div className="flex justify-between items-center">
               <div>
-                <CardTitle>Funding Performance Over Time</CardTitle>
-                <CardDescription>Multi-dimensional analysis of funding trends</CardDescription>
+                <CardTitle className="text-lg font-bold text-gray-800 group-hover:text-blue-700 transition-colors">Funding Performance Over Time</CardTitle>
+                <CardDescription className="text-gray-600">Multi-dimensional analysis of funding trends</CardDescription>
               </div>
               <Select value={chartType} onValueChange={setChartType}>
                 <SelectTrigger className="w-32">
@@ -315,10 +342,11 @@ const AnalyticsDashboard = () => {
         </Card>
 
         {/* Discipline Performance Matrix */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Discipline Performance Matrix</CardTitle>
-            <CardDescription>Project count vs estimated funding by discipline</CardDescription>
+        <Card className="group hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-purple-200 overflow-hidden relative bg-gradient-to-br from-white to-purple-50/20">
+          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-400/10 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <CardHeader className="relative z-10">
+            <CardTitle className="text-lg font-bold text-gray-800 group-hover:text-purple-700 transition-colors">Discipline Performance Matrix</CardTitle>
+            <CardDescription className="text-gray-600">Project count vs estimated funding by discipline</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={350}>
@@ -347,10 +375,11 @@ const AnalyticsDashboard = () => {
       </div>
 
       {/* Geographic Distribution */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Geographic Impact Analysis</CardTitle>
-          <CardDescription>Project distribution and funding across states</CardDescription>
+      <Card className="group hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-indigo-200 overflow-hidden relative bg-gradient-to-br from-white to-indigo-50/20">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-indigo-400/10 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <CardHeader className="relative z-10">
+          <CardTitle className="text-lg font-bold text-gray-800 group-hover:text-indigo-700 transition-colors">Geographic Impact Analysis</CardTitle>
+          <CardDescription className="text-gray-600">Project distribution and funding across states</CardDescription>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={400}>

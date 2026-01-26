@@ -39,7 +39,10 @@ export const disciplineApi = apiSlice.injectEndpoints({
         method: "PUT",
         body: disciplineData,
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: "Discipline", id }],
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Discipline", id },
+        "Discipline"
+      ],
     }),
     
     // Delete discipline

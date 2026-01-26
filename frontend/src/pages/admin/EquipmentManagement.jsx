@@ -62,8 +62,8 @@ const EquipmentManagement = () => {
   const handleFilterChange = (key, value) => {
     setFilters((prev) => {
       const newFilters = {
-        ...prev,
-        [key]: value === "" ? undefined : value,
+      ...prev,
+      [key]: value === "" ? undefined : value,
       }
       // Only reset page to 1 if changing filters other than page itself
       if (key !== "page") {
@@ -239,24 +239,29 @@ const EquipmentManagement = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen p-6">
       {/* Page Header */}
-      <div className="flex justify-between items-start">
+      <div className="flex justify-between items-start mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Equipment Management</h1>
-          <p className="text-gray-600">Manage research equipment and laboratory assets</p>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+            Equipment Management
+          </h1>
+          <p className="text-gray-600 text-lg">Manage research equipment and laboratory assets</p>
         </div>
         <div className="flex gap-3">
           <Button 
             onClick={handleSyncProjectEquipment} 
             variant="outline"
             disabled={isSyncing}
-            className="border-orange-500 text-orange-600 hover:bg-orange-50"
+            className="border-2 border-orange-500 text-orange-600 hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600 hover:text-white transition-all duration-300 hover:scale-105 hover:shadow-lg"
           >
             <Database className="h-4 w-4 mr-2" />
             {isSyncing ? "Syncing..." : "Sync from Projects"}
           </Button>
-          <Button onClick={handleNewEquipment} className="bg-[#0d559e] hover:bg-[#0d559e]/90">
+          <Button 
+            onClick={handleNewEquipment} 
+            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+          >
             <Plus className="h-4 w-4 mr-2" />
             Add Equipment
           </Button>
@@ -265,53 +270,67 @@ const EquipmentManagement = () => {
 
       {/* Equipment Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Equipment</CardTitle>
+        <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 border-transparent hover:border-blue-200 overflow-hidden relative bg-gradient-to-br from-white to-blue-50/30">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+            <CardTitle className="text-sm font-semibold text-gray-700 group-hover:text-blue-700 transition-colors">Total Equipment</CardTitle>
+            <div className="bg-blue-100 group-hover:bg-blue-200 rounded-full p-2 transition-all duration-300 group-hover:scale-110">
             <Database className="h-4 w-4 text-blue-600" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{statsData?.total || statsData?.equipment?.length || 0}</div>
-            <p className="text-xs text-muted-foreground">All items</p>
+          <CardContent className="relative z-10">
+            <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300 inline-block">
+              {statsData?.total || statsData?.equipment?.length || 0}
+            </div>
+            <p className="text-xs text-gray-600 group-hover:text-gray-700 transition-colors mt-2">All items</p>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Available</CardTitle>
+        <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 border-transparent hover:border-green-200 overflow-hidden relative bg-gradient-to-br from-white to-green-50/30">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+            <CardTitle className="text-sm font-semibold text-gray-700 group-hover:text-green-700 transition-colors">Available</CardTitle>
+            <div className="bg-green-100 group-hover:bg-green-200 rounded-full p-2 transition-all duration-300 group-hover:scale-110">
             <Database className="h-4 w-4 text-green-600" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="relative z-10">
+            <div className="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300 inline-block">
               {statsData?.equipment?.filter(eq => eq.status === "Available").length || 0}
             </div>
-            <p className="text-xs text-muted-foreground">Ready to use</p>
+            <p className="text-xs text-gray-600 group-hover:text-gray-700 transition-colors mt-2">Ready to use</p>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">In Use</CardTitle>
-            <Database className="h-4 w-4 text-blue-600" />
+        <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 border-transparent hover:border-indigo-200 overflow-hidden relative bg-gradient-to-br from-white to-indigo-50/30">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+            <CardTitle className="text-sm font-semibold text-gray-700 group-hover:text-indigo-700 transition-colors">In Use</CardTitle>
+            <div className="bg-indigo-100 group-hover:bg-indigo-200 rounded-full p-2 transition-all duration-300 group-hover:scale-110">
+              <Database className="h-4 w-4 text-indigo-600" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="relative z-10">
+            <div className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-indigo-700 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300 inline-block">
               {statsData?.equipment?.filter(eq => eq.status === "In Use").length || 0}
             </div>
-            <p className="text-xs text-muted-foreground">Currently in use</p>
+            <p className="text-xs text-gray-600 group-hover:text-gray-700 transition-colors mt-2">Currently in use</p>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Maintenance</CardTitle>
+        <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 border-transparent hover:border-yellow-200 overflow-hidden relative bg-gradient-to-br from-white to-yellow-50/30">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-yellow-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+            <CardTitle className="text-sm font-semibold text-gray-700 group-hover:text-yellow-700 transition-colors">Maintenance</CardTitle>
+            <div className="bg-yellow-100 group-hover:bg-yellow-200 rounded-full p-2 transition-all duration-300 group-hover:scale-110">
             <Database className="h-4 w-4 text-yellow-600" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="relative z-10">
+            <div className="text-3xl font-bold bg-gradient-to-r from-yellow-600 to-yellow-700 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300 inline-block">
               {statsData?.equipment?.filter(eq => eq.status === "Maintenance").length || 0}
             </div>
-            <p className="text-xs text-muted-foreground">Under maintenance</p>
+            <p className="text-xs text-gray-600 group-hover:text-gray-700 transition-colors mt-2">Under maintenance</p>
           </CardContent>
         </Card>
       </div>
@@ -368,8 +387,10 @@ const EquipmentManagement = () => {
       {/* Equipment Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Equipment ({data?.equipment?.length || 0})</CardTitle>
-          <CardDescription>Manage laboratory equipment and assets</CardDescription>
+          <CardTitle className="text-lg font-bold text-gray-800 group-hover:text-purple-700 transition-colors">
+            Equipment <span className="text-purple-600">({data?.equipment?.length || 0})</span>
+          </CardTitle>
+          <CardDescription className="text-gray-600">Manage laboratory equipment and assets</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (

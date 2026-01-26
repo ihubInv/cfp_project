@@ -129,14 +129,20 @@ const ActivityLogs = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen p-6">
       {/* Page Header */}
-      <div className="flex justify-between items-start">
+      <div className="flex justify-between items-start mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Activity Logs</h1>
-          <p className="text-gray-600">Monitor system activity and user actions</p>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+            Activity Logs
+          </h1>
+          <p className="text-gray-600 text-lg">Monitor system activity and user actions</p>
         </div>
-        <Button onClick={exportLogs} variant="outline">
+        <Button 
+          onClick={exportLogs} 
+          variant="outline"
+          className="border-2 border-blue-600 text-blue-600 hover:bg-gradient-to-r hover:from-blue-600 hover:to-blue-700 hover:text-white transition-all duration-300 hover:scale-105"
+        >
           <Download className="h-4 w-4 mr-2" />
           Export CSV
         </Button>
@@ -144,63 +150,76 @@ const ActivityLogs = () => {
 
       {/* Activity Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Activities</CardTitle>
+        <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 border-transparent hover:border-blue-200 overflow-hidden relative bg-gradient-to-br from-white to-blue-50/30">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+            <CardTitle className="text-sm font-semibold text-gray-700 group-hover:text-blue-700 transition-colors">Total Activities</CardTitle>
+            <div className="bg-blue-100 group-hover:bg-blue-200 rounded-full p-2 transition-all duration-300 group-hover:scale-110">
             <Activity className="h-4 w-4 text-blue-600" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="relative z-10">
+            <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300 inline-block">
               {statsLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : statsData?.stats?.total || 0}
             </div>
-            <p className="text-xs text-muted-foreground">All activities</p>
+            <p className="text-xs text-gray-600 group-hover:text-gray-700 transition-colors mt-2">All activities</p>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Today</CardTitle>
+        <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 border-transparent hover:border-green-200 overflow-hidden relative bg-gradient-to-br from-white to-green-50/30">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+            <CardTitle className="text-sm font-semibold text-gray-700 group-hover:text-green-700 transition-colors">Today</CardTitle>
+            <div className="bg-green-100 group-hover:bg-green-200 rounded-full p-2 transition-all duration-300 group-hover:scale-110">
             <Calendar className="h-4 w-4 text-green-600" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="relative z-10">
+            <div className="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300 inline-block">
               {statsLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : statsData?.stats?.today || 0}
             </div>
-            <p className="text-xs text-muted-foreground">Activities today</p>
+            <p className="text-xs text-gray-600 group-hover:text-gray-700 transition-colors mt-2">Activities today</p>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">This Week</CardTitle>
+        <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 border-transparent hover:border-purple-200 overflow-hidden relative bg-gradient-to-br from-white to-purple-50/30">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+            <CardTitle className="text-sm font-semibold text-gray-700 group-hover:text-purple-700 transition-colors">This Week</CardTitle>
+            <div className="bg-purple-100 group-hover:bg-purple-200 rounded-full p-2 transition-all duration-300 group-hover:scale-110">
             <Clock className="h-4 w-4 text-purple-600" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="relative z-10">
+            <div className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-700 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300 inline-block">
               {statsLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : statsData?.stats?.thisWeek || 0}
             </div>
-            <p className="text-xs text-muted-foreground">Activities this week</p>
+            <p className="text-xs text-gray-600 group-hover:text-gray-700 transition-colors mt-2">Activities this week</p>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">This Month</CardTitle>
+        <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 border-transparent hover:border-orange-200 overflow-hidden relative bg-gradient-to-br from-white to-orange-50/30">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+            <CardTitle className="text-sm font-semibold text-gray-700 group-hover:text-orange-700 transition-colors">This Month</CardTitle>
+            <div className="bg-orange-100 group-hover:bg-orange-200 rounded-full p-2 transition-all duration-300 group-hover:scale-110">
             <Activity className="h-4 w-4 text-orange-600" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="relative z-10">
+            <div className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300 inline-block">
               {statsLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : statsData?.stats?.thisMonth || 0}
             </div>
-            <p className="text-xs text-muted-foreground">Activities this month</p>
+            <p className="text-xs text-gray-600 group-hover:text-gray-700 transition-colors mt-2">Activities this month</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
+      <Card className="group hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-blue-200 overflow-hidden relative bg-gradient-to-br from-white to-blue-50/20">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-400/10 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <CardHeader className="relative z-10">
+          <CardTitle className="flex items-center text-lg font-bold text-gray-800 group-hover:text-blue-700 transition-colors">
             <Filter className="h-4 w-4 mr-2" />
             Filters
           </CardTitle>
@@ -280,12 +299,15 @@ const ActivityLogs = () => {
       </Card>
 
       {/* Activity Logs Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Activity Logs ({activityLogsData?.total || 0})</CardTitle>
-          <CardDescription>System activity and user actions audit trail</CardDescription>
+      <Card className="group hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-purple-200 overflow-hidden relative bg-gradient-to-br from-white to-purple-50/20">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-400/10 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <CardHeader className="relative z-10">
+          <CardTitle className="text-lg font-bold text-gray-800 group-hover:text-purple-700 transition-colors">
+            Activity Logs <span className="text-purple-600">({activityLogsData?.total || 0})</span>
+          </CardTitle>
+          <CardDescription className="text-gray-600">System activity and user actions audit trail</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="relative z-10">
           {isLoading ? (
             <div className="text-center py-8">
               <Loader2 className="h-8 w-8 animate-spin mx-auto text-[#0d559e]" />
@@ -310,31 +332,34 @@ const ActivityLogs = () => {
               </TableHeader>
               <TableBody>
                 {activityLogsData?.activityLogs?.map((log) => (
-                  <TableRow key={log._id}>
+                  <TableRow 
+                    key={log._id}
+                    className="group/row hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 transition-all duration-300 cursor-pointer hover:shadow-md"
+                  >
                     <TableCell>
                       <div>
-                        <p className="font-medium">{formatDate(log.createdAt)}</p>
-                        <p className="text-sm text-gray-500">{getRelativeTime(log.createdAt)}</p>
+                        <p className="font-medium group-hover/row:text-gray-900 transition-colors">{formatDate(log.createdAt)}</p>
+                        <p className="text-sm text-gray-500 group-hover/row:text-gray-600 transition-colors">{getRelativeTime(log.createdAt)}</p>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div>
-                        <p className="font-medium">{log.user?.firstName} {log.user?.lastName}</p>
-                        <p className="text-sm text-gray-500">{log.user?.email}</p>
+                        <p className="font-medium group-hover/row:text-gray-900 transition-colors">{log.user?.firstName} {log.user?.lastName}</p>
+                        <p className="text-sm text-gray-500 group-hover/row:text-gray-600 transition-colors">{log.user?.email}</p>
                       </div>
                     </TableCell>
                     <TableCell>{getActionBadge(log.action)}</TableCell>
                     <TableCell>{getTargetTypeBadge(log.targetType)}</TableCell>
                     <TableCell className="max-w-xs">
-                      <p className="truncate">{log.details?.description}</p>
+                      <p className="truncate group-hover/row:text-gray-800 transition-colors">{log.details?.description}</p>
                       {log.details?.comments && (
-                        <p className="text-sm text-gray-500 truncate mt-1">
+                        <p className="text-sm text-gray-500 truncate mt-1 group-hover/row:text-gray-600 transition-colors">
                           Comments: {log.details.comments}
                         </p>
                       )}
                     </TableCell>
                     <TableCell>
-                      <code className="text-xs bg-gray-100 px-2 py-1 rounded">
+                      <code className="text-xs bg-gray-100 px-2 py-1 rounded group-hover/row:bg-gray-200 transition-colors">
                         {log.ipAddress}
                       </code>
                     </TableCell>
@@ -344,6 +369,7 @@ const ActivityLogs = () => {
                         size="sm" 
                         title="View Details"
                         onClick={() => handleViewDetails(log)}
+                        className="hover:bg-blue-100 hover:text-blue-700 transition-all duration-300 hover:scale-110"
                       >
                         <Eye className="h-4 w-4" />
                       </Button>

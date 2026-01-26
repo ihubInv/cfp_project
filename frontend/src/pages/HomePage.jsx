@@ -26,7 +26,21 @@ import {
   useGetRecentProjectsQuery,
   useGetPlatformOverviewQuery 
 } from "../store/api/publicApi"
-import { formatCurrencyInCrores } from "../lib/utils"
+import { formatCurrencyInCrores, formatCurrencyInLakhsOrCrores } from "../lib/utils"
+import { 
+  PieChart, 
+  Pie, 
+  Cell, 
+  ResponsiveContainer, 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend,
+  Sector
+} from "recharts"
 
 // Import images
 import serbGovLogo from "../assets/serb-gov.png"
@@ -37,16 +51,55 @@ import istiLogo from "../assets/ISTI.png"
 import digitalIndiaLogo from "../assets/digital_india_logo_0.png"
 import dbtLogo from "../assets/dbt.png"
 
+// Custom tooltip for charts
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white p-3 shadow-lg rounded-lg border border-gray-200">
+        <p className="font-semibold text-gray-900">{payload[0].name || label}</p>
+        <p className="text-gray-600">Count: <span className="font-bold text-gray-900">{payload[0].value}</span></p>
+      </div>
+    )
+  }
+  return null
+}
+
+// Chart colors
+const CHART_COLORS = {
+  green: ['#22c55e', '#16a34a', '#15803d', '#166534', '#14532d'],
+  purple: ['#a855f7', '#9333ea', '#7e22ce', '#6b21a8', '#581c87'],
+  blue: ['#3b82f6', '#2563eb', '#1d4ed8', '#1e40af', '#1e3a8a'],
+  orange: ['#f97316', '#ea580c', '#c2410c', '#9a3412', '#7c2d12'],
+  mixed: ['#3b82f6', '#22c55e', '#a855f7', '#f97316', '#ef4444', '#06b6d4', '#84cc16']
+}
+
 const HomePage = () => {
   const [activeTab, setActiveTab] = useState("received")
   const [lastUpdateTime, setLastUpdateTime] = useState(new Date())
   const [countdown, setCountdown] = useState(30)
+  const [activeIndex, setActiveIndex] = useState(0)
 
   // Real-time data from API with auto-refresh
   const { data: fundingStats, isLoading: fundingLoading, error: fundingError, refetch: refetchFunding } = useGetFundingStatsQuery()
   const { data: projectStats, isLoading: projectLoading, refetch: refetchProjects } = useGetProjectStatsQuery()
   const { data: recentProjects, isLoading: recentLoading, refetch: refetchRecent } = useGetRecentProjectsQuery(5)
   const { data: platformOverview, isLoading: overviewLoading, refetch: refetchOverview } = useGetPlatformOverviewQuery()
+
+  // Debug logging
+  useEffect(() => {
+    if (fundingStats) {
+      console.log("=== Frontend Funding Stats ===")
+      console.log("Proposals Received Total:", fundingStats.proposalsReceived?.total)
+      console.log("Proposals Received Programs:", fundingStats.proposalsReceived?.programs)
+      console.log("Proposals Supported Total:", fundingStats.proposalsSupported?.total)
+      console.log("Proposals Supported Programs:", fundingStats.proposalsSupported?.programs)
+      console.log("Completed Projects:", fundingStats.completedProjects)
+      console.log("Active Projects:", fundingStats.activeProjects)
+    }
+    if (fundingError) {
+      console.error("Funding Stats Error:", fundingError)
+    }
+  }, [fundingStats, fundingError])
 
   // Loading state
   const isLoading = fundingLoading || projectLoading || recentLoading || overviewLoading
@@ -98,7 +151,12 @@ const HomePage = () => {
       description: "Browse comprehensive project information",
       icon: FileText,
       link: "/projects",
-      color: "hover:bg-blue-50",
+      bgGradient: "from-blue-500 to-blue-600",
+      hoverGradient: "from-blue-600 to-blue-700",
+      iconColor: "text-blue-600",
+      iconBg: "bg-blue-100",
+      hoverIconBg: "bg-blue-200",
+      shadowColor: "shadow-blue-200",
       image: "/api/placeholder/200/150"
     },
     {
@@ -106,7 +164,12 @@ const HomePage = () => {
       description: "Research assets database",
       icon: Microscope,
       link: "/equipment",
-      color: "hover:bg-orange-50",
+      bgGradient: "from-orange-500 to-orange-600",
+      hoverGradient: "from-orange-600 to-orange-700",
+      iconColor: "text-orange-600",
+      iconBg: "bg-orange-100",
+      hoverIconBg: "bg-orange-200",
+      shadowColor: "shadow-orange-200",
       image: "/api/placeholder/200/150"
     },
     {
@@ -114,7 +177,12 @@ const HomePage = () => {
       description: "Publications and outcomes",
       icon: BookOpen,
       link: "/publications",
-      color: "hover:bg-purple-50",
+      bgGradient: "from-purple-500 to-purple-600",
+      hoverGradient: "from-purple-600 to-purple-700",
+      iconColor: "text-purple-600",
+      iconBg: "bg-purple-100",
+      hoverIconBg: "bg-purple-200",
+      shadowColor: "shadow-purple-200",
       image: "/api/placeholder/200/150"
     },
   ]
@@ -130,7 +198,7 @@ const HomePage = () => {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Header />
 
       {/* Hero Banner Section */}
@@ -165,27 +233,51 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-stretch">
             {/* Left Side - Explore Features */}
-            <div className="bg-gray-50 p-8 rounded-lg h-full">
+            <div className="glass-section p-8 rounded-lg h-full">
               <h2 className="text-3xl font-bold text-gray-900 mb-8">Explore Funding Details</h2>
               <div className="grid grid-cols-3 gap-4">
-                {exploreFeatures.map((feature, index) => (
-                  <Link key={index} to={feature.link}>
-                    <Card className={`cursor-pointer transition-all duration-300 ${feature.color} hover:shadow-lg`}>
-                      <CardContent className="p-4 text-center">
-                        <div className="flex justify-center mb-3">
-                          <feature.icon className="h-8 w-8 text-blue-600" />
+                {exploreFeatures.map((feature, index) => {
+                  // Determine icon background classes based on feature
+                  const iconBgClasses = feature.iconBg === 'bg-blue-100' 
+                    ? 'bg-blue-100 group-hover:bg-blue-200' 
+                    : feature.iconBg === 'bg-orange-100'
+                    ? 'bg-orange-100 group-hover:bg-orange-200'
+                    : 'bg-purple-100 group-hover:bg-purple-200'
+                  
+                  return (
+                    <Link key={index} to={feature.link} className="group">
+                      <Card className={`cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl ${feature.shadowColor} border-2 border-transparent hover:border-gray-200 overflow-hidden relative bg-white`}>
+                        {/* Gradient Background Overlay */}
+                        <div className={`absolute inset-0 bg-gradient-to-br ${feature.bgGradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
+                        
+                        <CardContent className="p-5 text-center relative z-10">
+                          {/* Icon with Background */}
+                          <div className={`flex justify-center mb-4 transition-all duration-300 ${iconBgClasses} rounded-full w-16 h-16 mx-auto items-center group-hover:scale-110 group-hover:shadow-lg`}>
+                            <feature.icon className={`h-8 w-8 ${feature.iconColor} transition-transform duration-300 group-hover:rotate-6`} />
                         </div>
-                        <h3 className="text-sm font-semibold mb-1">{feature.title}</h3>
-                        <p className="text-xs text-gray-600">{feature.description}</p>
+                          
+                          {/* Title */}
+                          <h3 className="text-sm font-bold mb-2 text-gray-900 group-hover:text-gray-800 transition-colors">
+                            {feature.title}
+                          </h3>
+                          
+                          {/* Description */}
+                          <p className="text-xs text-gray-600 group-hover:text-gray-700 transition-colors leading-relaxed">
+                            {feature.description}
+                          </p>
+                          
+                          {/* Hover Indicator */}
+                          <div className={`mt-3 h-1 w-0 group-hover:w-full bg-gradient-to-r ${feature.bgGradient} transition-all duration-300 mx-auto rounded-full`}></div>
                       </CardContent>
                     </Card>
                   </Link>
-                ))}
+                  )
+                })}
               </div>
             </div>
 
             {/* Right Side - About Text */}
-            <div className="bg-gray-50 p-8 rounded-lg h-full">
+            <div className="glass-section p-8 rounded-lg h-full">
               <h3 className="text-2xl font-bold text-gray-900 mb-6">About IIT Mandi iHub & HCi Foundation</h3>
               <p className="text-gray-700 leading-relaxed mb-6">
                 IIT Mandi iHub and HCi Foundation (iHub) is a Technology Innovation Hub (TIH).
@@ -203,57 +295,100 @@ const HomePage = () => {
       </section>
 
       {/* Statistics Dashboard */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-20 bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section Header */}
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
+              Statistics Dashboard
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Real-time insights into proposals, projects, and research outcomes
+            </p>
+          </div>
+
           {/* Tab Navigation */}
-          <div className="mb-8">
-            <div className="border-b border-gray-200">
-              <nav className="-mb-px flex justify-center space-x-8">
+          <div className="mb-10">
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-2 shadow-lg border border-gray-200/50">
+              <nav className="flex justify-center flex-wrap gap-2">
                 <button
                   onClick={() => setActiveTab("received")}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  className={`group relative py-3 px-6 rounded-lg font-semibold text-sm transition-all duration-300 ${
                     activeTab === "received"
-                      ? "border-[#0d559e] text-[#0d559e]"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-200 scale-105"
+                      : "text-gray-600 hover:text-green-700 hover:bg-green-50"
                   }`}
                 >
-                  Proposal Received <span className="ml-2 bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
+                  <span className="relative z-10 flex items-center gap-2">
+                    Proposal Received
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold transition-all duration-300 ${
+                      activeTab === "received"
+                        ? "bg-white/20 text-white"
+                        : "bg-green-100 text-green-800 group-hover:bg-green-200"
+                    }`}>
                     {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : (fundingStats?.proposalsReceived?.total || 0)}
+                    </span>
                   </span>
+                  {activeTab === "received" && (
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-green-400 to-green-500 rounded-b-lg"></div>
+                  )}
                 </button>
                 <button
                   onClick={() => setActiveTab("approved")}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  className={`group relative py-3 px-6 rounded-lg font-semibold text-sm transition-all duration-300 ${
                     activeTab === "approved"
-                      ? "border-[#0d559e] text-[#0d559e]"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      ? "bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg shadow-purple-200 scale-105"
+                      : "text-gray-600 hover:text-purple-700 hover:bg-purple-50"
                   }`}
                 >
-                  Project Approved <span className="ml-2 bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs">
+                  <span className="relative z-10 flex items-center gap-2">
+                    Project Approved
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold transition-all duration-300 ${
+                      activeTab === "approved"
+                        ? "bg-white/20 text-white"
+                        : "bg-purple-100 text-purple-800 group-hover:bg-purple-200"
+                    }`}>
                     {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : (fundingStats?.proposalsSupported?.total || 0)}
+                    </span>
                   </span>
+                  {activeTab === "approved" && (
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-400 to-purple-500 rounded-b-lg"></div>
+                  )}
                 </button>
                 <button
                   onClick={() => setActiveTab("completed")}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  className={`group relative py-3 px-6 rounded-lg font-semibold text-sm transition-all duration-300 ${
                     activeTab === "completed"
-                      ? "border-[#0d559e] text-[#0d559e]"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-200 scale-105"
+                      : "text-gray-600 hover:text-orange-700 hover:bg-orange-50"
                   }`}
                 >
-                  Projects Completed <span className="ml-2 bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs">
+                  <span className="relative z-10 flex items-center gap-2">
+                    Projects Completed
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold transition-all duration-300 ${
+                      activeTab === "completed"
+                        ? "bg-white/20 text-white"
+                        : "bg-orange-100 text-orange-800 group-hover:bg-orange-200"
+                    }`}>
                     {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : (fundingStats?.completedProjects || 0)}
+                    </span>
                   </span>
+                  {activeTab === "completed" && (
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-400 to-orange-500 rounded-b-lg"></div>
+                  )}
                 </button>
                 <button
                   onClick={() => setActiveTab("highlights")}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  className={`group relative py-3 px-6 rounded-lg font-semibold text-sm transition-all duration-300 ${
                     activeTab === "highlights"
-                      ? "border-[#0d559e] text-[#0d559e]"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-200 scale-105"
+                      : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
                   }`}
                 >
-                  Key Highlights
+                  <span className="relative z-10">Key Highlights</span>
+                  {activeTab === "highlights" && (
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-b-lg"></div>
+                  )}
                 </button>
               </nav>
             </div>
@@ -265,23 +400,26 @@ const HomePage = () => {
             {activeTab === "received" && (
               <div className="space-y-6">
                 {/* Real-time Data Header */}
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-4 mb-2">
-                    <h3 className="text-xl font-semibold text-gray-900">Proposals Received</h3>
+                <div className="text-center mb-8">
+                  <div className="flex items-center justify-center gap-4 mb-4">
+                    <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent">
+                      Proposals Received
+                    </h3>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={handleManualRefresh}
                       disabled={isLoading}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 border-2 border-green-500 text-green-600 hover:bg-gradient-to-r hover:from-green-500 hover:to-green-600 hover:text-white transition-all duration-300 hover:scale-105 shadow-md"
                     >
                       <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
                       Refresh
                     </Button>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-gray-600">
-                      Last updated: {lastUpdateTime.toLocaleString('en-IN', {
+                  <div className="bg-white/60 backdrop-blur-sm rounded-lg p-4 shadow-md border border-green-200/50 max-w-2xl mx-auto">
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-700">
+                        Last updated: <span className="text-gray-900 font-semibold">{lastUpdateTime.toLocaleString('en-IN', {
                         timeZone: 'Asia/Kolkata',
                         weekday: 'long',
                         year: 'numeric',
@@ -290,37 +428,49 @@ const HomePage = () => {
                         hour: '2-digit',
                         minute: '2-digit',
                         second: '2-digit'
-                      })}
-                      <span className="ml-2 text-green-600 text-xs animate-pulse">● Live</span>
+                        })}</span>
+                        <span className="ml-2 inline-flex items-center gap-1 text-green-600 text-xs font-semibold animate-pulse">
+                          <span className="w-2 h-2 bg-green-500 rounded-full"></span> Live
+                        </span>
                     </p>
-                    <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-600">
                       Data as of: {new Date().toLocaleDateString('en-IN', {
                         timeZone: 'Asia/Kolkata',
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric'
-                      })} | Next auto-refresh in: <span className="text-[#0d559e] font-medium">{countdown}s</span>
+                        })} | Next auto-refresh in: <span className="text-green-600 font-bold">{countdown}s</span>
                     </p>
+                    </div>
                   </div>
                 </div>
 
                 {/* Proposals Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {isLoading ? (
-                    <div className="col-span-full flex justify-center py-12">
-                      <Loader2 className="w-8 h-8 animate-spin text-[#0d559e]" />
+                    <div className="col-span-full flex justify-center py-16">
+                      <div className="text-center">
+                        <Loader2 className="w-12 h-12 animate-spin text-green-600 mx-auto mb-4" />
+                        <p className="text-gray-600">Loading proposals...</p>
+                      </div>
                     </div>
-                  ) : fundingStats?.proposalsReceived?.programs?.length > 0 ? (
+                  ) : fundingStats?.proposalsReceived?.total > 0 ? (
+                    fundingStats.proposalsReceived.programs && fundingStats.proposalsReceived.programs.length > 0 ? (
                     fundingStats.proposalsReceived.programs.map((proposal, index) => (
-                      <Card key={index} className="hover:shadow-lg transition-all duration-300 hover:scale-105">
-                        <CardContent className="p-6">
+                        <Card key={index} className="group relative overflow-hidden border-2 border-transparent hover:border-green-200 bg-gradient-to-br from-white to-green-50/30 hover:shadow-2xl transition-all duration-300 hover:scale-105">
+                          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                          <CardContent className="p-6 relative z-10">
                           <div className="text-center">
-                            <Badge variant="secondary" className="mb-4">{fundingStats?.year || new Date().getFullYear()}</Badge>
-                            <div className="text-3xl font-bold text-gray-900 mb-2">{proposal.count.toLocaleString()}</div>
-                            <h3 className="text-sm font-medium text-gray-900 text-center leading-tight mb-2">
+                              <Badge className="mb-4 bg-gradient-to-r from-green-500 to-green-600 text-white border-0 shadow-md">
+                                {fundingStats?.year || new Date().getFullYear()}
+                              </Badge>
+                              <div className="text-4xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent mb-3 group-hover:scale-110 transition-transform duration-300 inline-block">
+                                {proposal.count.toLocaleString()}
+                              </div>
+                              <h3 className="text-base font-semibold text-gray-900 text-center leading-tight mb-3 group-hover:text-green-700 transition-colors">
                               {proposal._id || "Unknown Program"}
                             </h3>
-                            <div className="text-xs text-gray-500">
+                              <div className="text-xs text-gray-600 bg-gray-50 rounded-lg px-3 py-2 inline-block">
                               Last received: {new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN', {
                                 timeZone: 'Asia/Kolkata',
                                 month: 'short',
@@ -331,37 +481,116 @@ const HomePage = () => {
                             </div>
                           </div>
                         </CardContent>
+                          <div className="absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r from-green-400 to-green-600 transition-all duration-300 group-hover:w-full"></div>
+                        </Card>
+                      ))
+                    ) : (
+                      // Show total count if programs array is empty but total > 0
+                      <Card className="group relative overflow-hidden border-2 border-transparent hover:border-green-200 bg-gradient-to-br from-white to-green-50/30 hover:shadow-2xl transition-all duration-300 hover:scale-105">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <CardContent className="p-6 relative z-10">
+                          <div className="text-center">
+                            <Badge className="mb-4 bg-gradient-to-r from-green-500 to-green-600 text-white border-0 shadow-md">
+                              {fundingStats?.year || new Date().getFullYear()}
+                            </Badge>
+                            <div className="text-4xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent mb-3 group-hover:scale-110 transition-transform duration-300 inline-block">
+                              {fundingStats.proposalsReceived.total.toLocaleString()}
+                            </div>
+                            <h3 className="text-base font-semibold text-gray-900 text-center leading-tight mb-3 group-hover:text-green-700 transition-colors">
+                              All Proposals
+                            </h3>
+                            <div className="text-xs text-gray-600 bg-gray-50 rounded-lg px-3 py-2 inline-block">
+                              Total proposals in database
+                            </div>
+                          </div>
+                        </CardContent>
+                        <div className="absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r from-green-400 to-green-600 transition-all duration-300 group-hover:w-full"></div>
                       </Card>
-                    ))
+                    )
                   ) : (
-                    <div className="col-span-full text-center py-12">
-                      <p className="text-gray-500">No proposals received data available</p>
+                    <div className="col-span-full text-center py-16">
+                      <div className="bg-white/60 backdrop-blur-sm rounded-lg p-8 shadow-md border border-gray-200 max-w-md mx-auto">
+                        <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                        <p className="text-gray-600 font-medium">No proposals received data available</p>
+                      </div>
                     </div>
                   )}
                 </div>
+
+                {/* Pie Chart for Proposals Received */}
+                {!isLoading && fundingStats?.proposalsReceived?.programs && fundingStats.proposalsReceived.programs.length > 0 && (
+                  <div className="mt-8">
+                    <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                      <CardHeader className="text-center pb-2">
+                        <CardTitle className="text-xl font-bold text-gray-900">Proposals Distribution by CFP</CardTitle>
+                        <p className="text-sm text-gray-600">Visual breakdown of proposals received across different CFP programs</p>
+                      </CardHeader>
+                      <CardContent className="pt-4">
+                        <div className="h-80">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie
+                                data={fundingStats.proposalsReceived.programs.map(p => ({
+                                  name: p._id || 'Unknown',
+                                  value: p.count
+                                }))}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={60}
+                                outerRadius={100}
+                                paddingAngle={5}
+                                dataKey="value"
+                                label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                                labelLine={{ stroke: '#6b7280', strokeWidth: 1 }}
+                              >
+                                {fundingStats.proposalsReceived.programs.map((entry, index) => (
+                                  <Cell 
+                                    key={`cell-${index}`} 
+                                    fill={CHART_COLORS.green[index % CHART_COLORS.green.length]}
+                                    stroke="#fff"
+                                    strokeWidth={2}
+                                  />
+                                ))}
+                              </Pie>
+                              <Tooltip content={<CustomTooltip />} />
+                              <Legend 
+                                verticalAlign="bottom" 
+                                height={36}
+                                formatter={(value) => <span className="text-gray-700 font-medium">{value}</span>}
+                              />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
               </div>
             )}
 
             {activeTab === "approved" && (
               <div className="space-y-6">
                 {/* Real-time Data Header */}
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-4 mb-2">
-                    <h3 className="text-xl font-semibold text-gray-900">Project Approved</h3>
+                <div className="text-center mb-8">
+                  <div className="flex items-center justify-center gap-4 mb-4">
+                    <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-700 bg-clip-text text-transparent">
+                      Project Approved
+                    </h3>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={handleManualRefresh}
                       disabled={isLoading}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 border-2 border-purple-500 text-purple-600 hover:bg-gradient-to-r hover:from-purple-500 hover:to-purple-600 hover:text-white transition-all duration-300 hover:scale-105 shadow-md"
                     >
                       <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
                       Refresh
                     </Button>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-gray-600">
-                      Last updated: {lastUpdateTime.toLocaleString('en-IN', {
+                  <div className="bg-white/60 backdrop-blur-sm rounded-lg p-4 shadow-md border border-purple-200/50 max-w-2xl mx-auto">
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-700">
+                        Last updated: <span className="text-gray-900 font-semibold">{lastUpdateTime.toLocaleString('en-IN', {
                         timeZone: 'Asia/Kolkata',
                         weekday: 'long',
                         year: 'numeric',
@@ -370,37 +599,49 @@ const HomePage = () => {
                         hour: '2-digit',
                         minute: '2-digit',
                         second: '2-digit'
-                      })}
-                      <span className="ml-2 text-green-600 text-xs animate-pulse">● Live</span>
+                        })}</span>
+                        <span className="ml-2 inline-flex items-center gap-1 text-purple-600 text-xs font-semibold animate-pulse">
+                          <span className="w-2 h-2 bg-purple-500 rounded-full"></span> Live
+                        </span>
                     </p>
-                    <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-600">
                       Data as of: {new Date().toLocaleDateString('en-IN', {
                         timeZone: 'Asia/Kolkata',
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric'
-                      })} | Next auto-refresh in: <span className="text-[#0d559e] font-medium">{countdown}s</span>
+                        })} | Next auto-refresh in: <span className="text-purple-600 font-bold">{countdown}s</span>
                     </p>
+                    </div>
                   </div>
                 </div>
 
                 {/* Supported Proposals Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {isLoading ? (
-                    <div className="col-span-full flex justify-center py-12">
-                      <Loader2 className="w-8 h-8 animate-spin text-[#0d559e]" />
+                    <div className="col-span-full flex justify-center py-16">
+                      <div className="text-center">
+                        <Loader2 className="w-12 h-12 animate-spin text-purple-600 mx-auto mb-4" />
+                        <p className="text-gray-600">Loading approved projects...</p>
+                      </div>
                     </div>
-                  ) : fundingStats?.proposalsSupported?.programs?.length > 0 ? (
+                  ) : fundingStats?.proposalsSupported?.total > 0 ? (
+                    fundingStats.proposalsSupported.programs && fundingStats.proposalsSupported.programs.length > 0 ? (
                     fundingStats.proposalsSupported.programs.map((proposal, index) => (
-                      <Card key={index} className="hover:shadow-lg transition-all duration-300 hover:scale-105">
-                        <CardContent className="p-6">
+                        <Card key={index} className="group relative overflow-hidden border-2 border-transparent hover:border-purple-200 bg-gradient-to-br from-white to-purple-50/30 hover:shadow-2xl transition-all duration-300 hover:scale-105">
+                          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                          <CardContent className="p-6 relative z-10">
                           <div className="text-center">
-                            <Badge variant="secondary" className="mb-4">{fundingStats?.year || new Date().getFullYear()}</Badge>
-                            <div className="text-3xl font-bold text-gray-900 mb-2">{proposal.count.toLocaleString()}</div>
-                            <h3 className="text-sm font-medium text-gray-900 text-center leading-tight mb-2">
+                              <Badge className="mb-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white border-0 shadow-md">
+                                {fundingStats?.year || new Date().getFullYear()}
+                              </Badge>
+                              <div className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-purple-700 bg-clip-text text-transparent mb-3 group-hover:scale-110 transition-transform duration-300 inline-block">
+                                {proposal.count.toLocaleString()}
+                              </div>
+                              <h3 className="text-base font-semibold text-gray-900 text-center leading-tight mb-3 group-hover:text-purple-700 transition-colors">
                               {proposal._id || "Unknown Program"}
                             </h3>
-                            <div className="text-xs text-gray-500">
+                              <div className="text-xs text-gray-600 bg-gray-50 rounded-lg px-3 py-2 inline-block">
                               Last approved: {new Date(Date.now() - Math.random() * 14 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN', {
                                 timeZone: 'Asia/Kolkata',
                                 month: 'short',
@@ -411,37 +652,116 @@ const HomePage = () => {
                             </div>
                           </div>
                         </CardContent>
+                          <div className="absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r from-purple-400 to-purple-600 transition-all duration-300 group-hover:w-full"></div>
+                        </Card>
+                      ))
+                    ) : (
+                      // Show total count if programs array is empty but total > 0
+                      <Card className="group relative overflow-hidden border-2 border-transparent hover:border-purple-200 bg-gradient-to-br from-white to-purple-50/30 hover:shadow-2xl transition-all duration-300 hover:scale-105">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <CardContent className="p-6 relative z-10">
+                          <div className="text-center">
+                            <Badge className="mb-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white border-0 shadow-md">
+                              {fundingStats?.year || new Date().getFullYear()}
+                            </Badge>
+                            <div className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-purple-700 bg-clip-text text-transparent mb-3 group-hover:scale-110 transition-transform duration-300 inline-block">
+                              {fundingStats.proposalsSupported.total.toLocaleString()}
+                            </div>
+                            <h3 className="text-base font-semibold text-gray-900 text-center leading-tight mb-3 group-hover:text-purple-700 transition-colors">
+                              All Approved Projects
+                            </h3>
+                            <div className="text-xs text-gray-600 bg-gray-50 rounded-lg px-3 py-2 inline-block">
+                              Total approved projects in database
+                            </div>
+                          </div>
+                        </CardContent>
+                        <div className="absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r from-purple-400 to-purple-600 transition-all duration-300 group-hover:w-full"></div>
                       </Card>
-                    ))
+                    )
                   ) : (
-                    <div className="col-span-full text-center py-12">
-                      <p className="text-gray-500">No project approved data available</p>
+                    <div className="col-span-full text-center py-16">
+                      <div className="bg-white/60 backdrop-blur-sm rounded-lg p-8 shadow-md border border-gray-200 max-w-md mx-auto">
+                        <Award className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                        <p className="text-gray-600 font-medium">No project approved data available</p>
+                      </div>
                     </div>
                   )}
                 </div>
+
+                {/* Pie Chart for Projects Approved */}
+                {!isLoading && fundingStats?.proposalsSupported?.programs && fundingStats.proposalsSupported.programs.length > 0 && (
+                  <div className="mt-8">
+                    <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                      <CardHeader className="text-center pb-2">
+                        <CardTitle className="text-xl font-bold text-gray-900">Approved Projects by CFP</CardTitle>
+                        <p className="text-sm text-gray-600">Distribution of approved projects across CFP programs</p>
+                      </CardHeader>
+                      <CardContent className="pt-4">
+                        <div className="h-80">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie
+                                data={fundingStats.proposalsSupported.programs.map(p => ({
+                                  name: p._id || 'Unknown',
+                                  value: p.count
+                                }))}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={60}
+                                outerRadius={100}
+                                paddingAngle={5}
+                                dataKey="value"
+                                label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                                labelLine={{ stroke: '#6b7280', strokeWidth: 1 }}
+                              >
+                                {fundingStats.proposalsSupported.programs.map((entry, index) => (
+                                  <Cell 
+                                    key={`cell-${index}`} 
+                                    fill={CHART_COLORS.purple[index % CHART_COLORS.purple.length]}
+                                    stroke="#fff"
+                                    strokeWidth={2}
+                                  />
+                                ))}
+                              </Pie>
+                              <Tooltip content={<CustomTooltip />} />
+                              <Legend 
+                                verticalAlign="bottom" 
+                                height={36}
+                                formatter={(value) => <span className="text-gray-700 font-medium">{value}</span>}
+                              />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
               </div>
             )}
 
             {activeTab === "completed" && (
               <div className="space-y-6">
                 {/* Real-time Data Header */}
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-4 mb-2">
-                    <h3 className="text-xl font-semibold text-gray-900">Projects Completed</h3>
+                <div className="text-center mb-8">
+                  <div className="flex items-center justify-center gap-4 mb-4">
+                    <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent">
+                      Projects Completed
+                    </h3>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={handleManualRefresh}
                       disabled={isLoading}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 border-2 border-orange-500 text-orange-600 hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600 hover:text-white transition-all duration-300 hover:scale-105 shadow-md"
                     >
                       <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
                       Refresh
                     </Button>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-gray-600">
-                      Last updated: {lastUpdateTime.toLocaleString('en-IN', {
+                  <div className="bg-white/60 backdrop-blur-sm rounded-lg p-4 shadow-md border border-orange-200/50 max-w-2xl mx-auto">
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-700">
+                        Last updated: <span className="text-gray-900 font-semibold">{lastUpdateTime.toLocaleString('en-IN', {
                         timeZone: 'Asia/Kolkata',
                         weekday: 'long',
                         year: 'numeric',
@@ -450,92 +770,185 @@ const HomePage = () => {
                         hour: '2-digit',
                         minute: '2-digit',
                         second: '2-digit'
-                      })}
-                      <span className="ml-2 text-green-600 text-xs animate-pulse">● Live</span>
+                        })}</span>
+                        <span className="ml-2 inline-flex items-center gap-1 text-orange-600 text-xs font-semibold animate-pulse">
+                          <span className="w-2 h-2 bg-orange-500 rounded-full"></span> Live
+                        </span>
                     </p>
-                    <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-600">
                       Data as of: {new Date().toLocaleDateString('en-IN', {
                         timeZone: 'Asia/Kolkata',
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric'
-                      })} | Next auto-refresh in: <span className="text-[#0d559e] font-medium">{countdown}s</span>
+                        })} | Next auto-refresh in: <span className="text-orange-600 font-bold">{countdown}s</span>
                     </p>
+                    </div>
                   </div>
                 </div>
 
                 {/* Completed Projects Statistics */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {isLoading ? (
-                    <div className="col-span-full flex justify-center py-12">
-                      <Loader2 className="w-8 h-8 animate-spin text-[#0d559e]" />
+                    <div className="col-span-full flex justify-center py-16">
+                      <div className="text-center">
+                        <Loader2 className="w-12 h-12 animate-spin text-orange-600 mx-auto mb-4" />
+                        <p className="text-gray-600">Loading statistics...</p>
+                      </div>
                     </div>
                   ) : (
                     <>
-                      <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105">
-                        <CardContent className="p-8 text-center">
-                          <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                            <Award className="w-8 h-8 text-white" />
+                      <Card className="group relative overflow-hidden border-2 border-transparent hover:border-green-200 bg-gradient-to-br from-white to-green-50/30 hover:shadow-2xl transition-all duration-300 hover:scale-105">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <CardContent className="p-8 text-center relative z-10">
+                          <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
+                            <Award className="w-8 h-8 text-white group-hover:rotate-12 transition-transform duration-300" />
                           </div>
-                          <div className="text-4xl font-bold text-gray-900 mb-2">
+                          <div className="text-5xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent mb-3 group-hover:scale-110 transition-transform duration-300 inline-block">
                             {fundingStats?.completedProjects?.toLocaleString() || 0}
                           </div>
-                          <h3 className="text-lg font-semibold text-gray-900 mb-2">Completed Projects</h3>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-green-700 transition-colors">Completed Projects</h3>
                           <p className="text-sm text-gray-600">Successfully finished projects</p>
                         </CardContent>
+                        <div className="absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r from-green-400 to-green-600 transition-all duration-300 group-hover:w-full"></div>
                       </Card>
                       
-                      <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105">
-                        <CardContent className="p-8 text-center">
-                          <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                            <TrendingUp className="w-8 h-8 text-white" />
+                      <Card className="group relative overflow-hidden border-2 border-transparent hover:border-blue-200 bg-gradient-to-br from-white to-blue-50/30 hover:shadow-2xl transition-all duration-300 hover:scale-105">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <CardContent className="p-8 text-center relative z-10">
+                          <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
+                            <TrendingUp className="w-8 h-8 text-white group-hover:rotate-12 transition-transform duration-300" />
                           </div>
-                          <div className="text-4xl font-bold text-gray-900 mb-2">
+                          <div className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent mb-3 group-hover:scale-110 transition-transform duration-300 inline-block">
                             {fundingStats?.activeProjects?.toLocaleString() || 0}
                           </div>
-                          <h3 className="text-lg font-semibold text-gray-900 mb-2">Active Projects</h3>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-700 transition-colors">Active Projects</h3>
                           <p className="text-sm text-gray-600">Currently ongoing projects</p>
                         </CardContent>
+                        <div className="absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-300 group-hover:w-full"></div>
                       </Card>
                       
-                      <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105">
-                        <CardContent className="p-8 text-center">
-                          <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                            <BookOpen className="w-8 h-8 text-white" />
+                      <Card className="group relative overflow-hidden border-2 border-transparent hover:border-purple-200 bg-gradient-to-br from-white to-purple-50/30 hover:shadow-2xl transition-all duration-300 hover:scale-105">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <CardContent className="p-8 text-center relative z-10">
+                          <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
+                            <BookOpen className="w-8 h-8 text-white group-hover:rotate-12 transition-transform duration-300" />
                           </div>
-                          <div className="text-4xl font-bold text-gray-900 mb-2">
+                          <div className="text-5xl font-bold bg-gradient-to-r from-purple-600 to-purple-700 bg-clip-text text-transparent mb-3 group-hover:scale-110 transition-transform duration-300 inline-block">
                             {fundingStats?.projectOutput?.publications?.toLocaleString() || 0}
                           </div>
-                          <h3 className="text-lg font-semibold text-gray-900 mb-2">Publications</h3>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-purple-700 transition-colors">Publications</h3>
                           <p className="text-sm text-gray-600">Research papers & articles</p>
                         </CardContent>
+                        <div className="absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r from-purple-400 to-purple-600 transition-all duration-300 group-hover:w-full"></div>
                       </Card>
                     </>
                   )}
                 </div>
+
+                {/* Charts for Projects Completed */}
+                {!isLoading && (fundingStats?.completedProjects > 0 || fundingStats?.activeProjects > 0) && (
+                  <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Pie Chart - Project Status Distribution */}
+                    <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                      <CardHeader className="text-center pb-2">
+                        <CardTitle className="text-xl font-bold text-gray-900">Project Status Distribution</CardTitle>
+                        <p className="text-sm text-gray-600">Active vs Completed projects breakdown</p>
+                      </CardHeader>
+                      <CardContent className="pt-4">
+                        <div className="h-72">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie
+                                data={[
+                                  { name: 'Active Projects', value: fundingStats?.activeProjects || 0 },
+                                  { name: 'Completed Projects', value: fundingStats?.completedProjects || 0 }
+                                ]}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={50}
+                                outerRadius={80}
+                                paddingAngle={5}
+                                dataKey="value"
+                                label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                              >
+                                <Cell fill="#3b82f6" stroke="#fff" strokeWidth={2} />
+                                <Cell fill="#22c55e" stroke="#fff" strokeWidth={2} />
+                              </Pie>
+                              <Tooltip content={<CustomTooltip />} />
+                              <Legend 
+                                verticalAlign="bottom" 
+                                height={36}
+                                formatter={(value) => <span className="text-gray-700 font-medium">{value}</span>}
+                              />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Bar Chart - Output Metrics */}
+                    <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                      <CardHeader className="text-center pb-2">
+                        <CardTitle className="text-xl font-bold text-gray-900">Research Output</CardTitle>
+                        <p className="text-sm text-gray-600">Publications from research projects</p>
+                      </CardHeader>
+                      <CardContent className="pt-4">
+                        <div className="h-72">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                              data={[
+                                { 
+                                  name: 'Output', 
+                                  Publications: fundingStats?.projectOutput?.publications || 0,
+                                  'Active Projects': fundingStats?.activeProjects || 0,
+                                  'Completed': fundingStats?.completedProjects || 0
+                                }
+                              ]}
+                              layout="vertical"
+                              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                              <XAxis type="number" tick={{ fill: '#6b7280' }} />
+                              <YAxis type="category" dataKey="name" hide />
+                              <Tooltip content={<CustomTooltip />} />
+                              <Legend formatter={(value) => <span className="text-gray-700 font-medium">{value}</span>} />
+                              <Bar dataKey="Publications" fill="#a855f7" radius={[0, 4, 4, 0]} />
+                              <Bar dataKey="Active Projects" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+                              <Bar dataKey="Completed" fill="#22c55e" radius={[0, 4, 4, 0]} />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
               </div>
             )}
 
             {activeTab === "highlights" && (
               <div className="space-y-8">
                 {/* Real-time Data Header */}
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-4 mb-2">
-                    <h3 className="text-xl font-semibold text-gray-900">Key Highlights</h3>
+                <div className="text-center mb-8">
+                  <div className="flex items-center justify-center gap-4 mb-4">
+                    <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent">
+                      Key Highlights
+                    </h3>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={handleManualRefresh}
                       disabled={isLoading}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 border-2 border-blue-500 text-blue-600 hover:bg-gradient-to-r hover:from-blue-500 hover:to-indigo-600 hover:text-white transition-all duration-300 hover:scale-105 shadow-md"
                     >
                       <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
                       Refresh
                     </Button>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-gray-600">
-                      Last updated: {lastUpdateTime.toLocaleString('en-IN', {
+                  <div className="bg-white/60 backdrop-blur-sm rounded-lg p-4 shadow-md border border-blue-200/50 max-w-2xl mx-auto">
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-700">
+                        Last updated: <span className="text-gray-900 font-semibold">{lastUpdateTime.toLocaleString('en-IN', {
                         timeZone: 'Asia/Kolkata',
                         weekday: 'long',
                         year: 'numeric',
@@ -544,124 +957,252 @@ const HomePage = () => {
                         hour: '2-digit',
                         minute: '2-digit',
                         second: '2-digit'
-                      })}
-                      <span className="ml-2 text-green-600 text-xs animate-pulse">● Live</span>
+                        })}</span>
+                        <span className="ml-2 inline-flex items-center gap-1 text-blue-600 text-xs font-semibold animate-pulse">
+                          <span className="w-2 h-2 bg-blue-500 rounded-full"></span> Live
+                        </span>
                     </p>
-                    <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-600">
                       Data as of: {new Date().toLocaleDateString('en-IN', {
                         timeZone: 'Asia/Kolkata',
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric'
-                      })} | Next auto-refresh in: <span className="text-[#0d559e] font-medium">{countdown}s</span>
+                        })} | Next auto-refresh in: <span className="text-blue-600 font-bold">{countdown}s</span>
                     </p>
+                    </div>
                   </div>
                 </div>
 
                 {/* Key Highlights Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {isLoading ? (
-                    <div className="col-span-full flex justify-center py-12">
-                      <Loader2 className="w-8 h-8 animate-spin text-[#0d559e]" />
+                    <div className="col-span-full flex justify-center py-16">
+                      <div className="text-center">
+                        <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
+                        <p className="text-gray-600">Loading highlights...</p>
+                      </div>
                     </div>
                   ) : (
                     <>
-                      <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105">
-                        <CardContent className="p-6 text-center">
-                          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                            <DollarSign className="w-8 h-8 text-white" />
+                      <Card className="group relative overflow-hidden border-2 border-transparent hover:border-blue-200 bg-gradient-to-br from-white to-blue-50/30 hover:shadow-2xl transition-all duration-300 hover:scale-105">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <CardContent className="p-6 text-center relative z-10">
+                          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
+                            <DollarSign className="w-8 h-8 text-white group-hover:rotate-12 transition-transform duration-300" />
                           </div>
-                          <div className="text-3xl font-bold text-gray-900 mb-2">
-                            {formatCurrencyInCrores(fundingStats?.totalFunding || 0)}
+                          <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform duration-300 inline-block">
+                            {formatCurrencyInLakhsOrCrores(fundingStats?.totalFunding || 0)}
                           </div>
-                          <h3 className="text-base font-semibold text-gray-900 mb-1">Total Funding</h3>
+                          <h3 className="text-base font-semibold text-gray-900 mb-1 group-hover:text-blue-700 transition-colors">Total Funding</h3>
                           <p className="text-xs text-gray-600">Cumulative funding received</p>
                         </CardContent>
+                        <div className="absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-300 group-hover:w-full"></div>
                       </Card>
                       
-                      <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105">
-                        <CardContent className="p-6 text-center">
-                          <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                            <TrendingUp className="w-8 h-8 text-white" />
+                      <Card className="group relative overflow-hidden border-2 border-transparent hover:border-green-200 bg-gradient-to-br from-white to-green-50/30 hover:shadow-2xl transition-all duration-300 hover:scale-105">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <CardContent className="p-6 text-center relative z-10">
+                          <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
+                            <TrendingUp className="w-8 h-8 text-white group-hover:rotate-12 transition-transform duration-300" />
                           </div>
-                          <div className="text-3xl font-bold text-gray-900 mb-2">
+                          <div className="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform duration-300 inline-block">
                             {(fundingStats?.activeProjects || fundingStats?.ongoingProjects?.total || 0).toLocaleString()}
                           </div>
-                          <h3 className="text-base font-semibold text-gray-900 mb-1">Active Projects</h3>
+                          <h3 className="text-base font-semibold text-gray-900 mb-1 group-hover:text-green-700 transition-colors">Active Projects</h3>
                           <p className="text-xs text-gray-600">Currently ongoing</p>
                         </CardContent>
+                        <div className="absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r from-green-400 to-green-600 transition-all duration-300 group-hover:w-full"></div>
                       </Card>
                       
-                      <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105">
-                        <CardContent className="p-6 text-center">
-                          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                            <Award className="w-8 h-8 text-white" />
+                      <Card className="group relative overflow-hidden border-2 border-transparent hover:border-purple-200 bg-gradient-to-br from-white to-purple-50/30 hover:shadow-2xl transition-all duration-300 hover:scale-105">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <CardContent className="p-6 text-center relative z-10">
+                          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
+                            <Award className="w-8 h-8 text-white group-hover:rotate-12 transition-transform duration-300" />
                           </div>
-                          <div className="text-3xl font-bold text-gray-900 mb-2">
+                          <div className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-700 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform duration-300 inline-block">
                             {(fundingStats?.completedProjects || 0).toLocaleString()}
                           </div>
-                          <h3 className="text-base font-semibold text-gray-900 mb-1">Completed Projects</h3>
+                          <h3 className="text-base font-semibold text-gray-900 mb-1 group-hover:text-purple-700 transition-colors">Completed Projects</h3>
                           <p className="text-xs text-gray-600">Successfully finished</p>
                         </CardContent>
+                        <div className="absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r from-purple-400 to-purple-600 transition-all duration-300 group-hover:w-full"></div>
                       </Card>
                       
-                      <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105">
-                        <CardContent className="p-6 text-center">
-                          <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                            <BookOpen className="w-8 h-8 text-white" />
+                      <Card className="group relative overflow-hidden border-2 border-transparent hover:border-orange-200 bg-gradient-to-br from-white to-orange-50/30 hover:shadow-2xl transition-all duration-300 hover:scale-105">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <CardContent className="p-6 text-center relative z-10">
+                          <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
+                            <BookOpen className="w-8 h-8 text-white group-hover:rotate-12 transition-transform duration-300" />
                           </div>
-                          <div className="text-3xl font-bold text-gray-900 mb-2">
+                          <div className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform duration-300 inline-block">
                             {(fundingStats?.projectOutput?.publications || 0).toLocaleString()}
                           </div>
-                          <h3 className="text-base font-semibold text-gray-900 mb-1">Publications</h3>
+                          <h3 className="text-base font-semibold text-gray-900 mb-1 group-hover:text-orange-700 transition-colors">Publications</h3>
                           <p className="text-xs text-gray-600">Research papers & articles</p>
                         </CardContent>
+                        <div className="absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r from-orange-400 to-orange-600 transition-all duration-300 group-hover:w-full"></div>
                       </Card>
                     </>
                   )}
                 </div>
 
                 {/* Additional Highlights */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <Card className="hover:shadow-lg transition-all duration-300">
-                    <CardContent className="p-6 text-center">
-                      <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                        <Microscope className="w-8 h-8 text-white" />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                  <Card className="group relative overflow-hidden border-2 border-transparent hover:border-green-200 bg-gradient-to-br from-white to-green-50/30 hover:shadow-2xl transition-all duration-300 hover:scale-105">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <CardContent className="p-6 text-center relative z-10">
+                      <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
+                        <Microscope className="w-8 h-8 text-white group-hover:rotate-12 transition-transform duration-300" />
                       </div>
-                      <div className="text-3xl font-bold text-gray-900 mb-2">
+                      <div className="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform duration-300 inline-block">
                         {(fundingStats?.projectOutput?.equipment || 0).toLocaleString()}
                       </div>
-                      <h3 className="text-base font-semibold text-gray-900 mb-1">Equipment</h3>
+                      <h3 className="text-base font-semibold text-gray-900 mb-1 group-hover:text-green-700 transition-colors">Equipment</h3>
                       <p className="text-xs text-gray-600">Research instruments & tools</p>
                     </CardContent>
+                    <div className="absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r from-green-400 to-green-600 transition-all duration-300 group-hover:w-full"></div>
                   </Card>
                   
-                  <Card className="hover:shadow-lg transition-all duration-300">
-                    <CardContent className="p-6 text-center">
-                      <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                        <Users className="w-8 h-8 text-white" />
+                  <Card className="group relative overflow-hidden border-2 border-transparent hover:border-purple-200 bg-gradient-to-br from-white to-purple-50/30 hover:shadow-2xl transition-all duration-300 hover:scale-105">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <CardContent className="p-6 text-center relative z-10">
+                      <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
+                        <Users className="w-8 h-8 text-white group-hover:rotate-12 transition-transform duration-300" />
                       </div>
-                      <div className="text-3xl font-bold text-gray-900 mb-2">
+                      <div className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-700 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform duration-300 inline-block">
                         {(fundingStats?.projectOutput?.manpower || 0).toLocaleString()}
                       </div>
-                      <h3 className="text-base font-semibold text-gray-900 mb-1">Manpower</h3>
+                      <h3 className="text-base font-semibold text-gray-900 mb-1 group-hover:text-purple-700 transition-colors">Manpower</h3>
                       <p className="text-xs text-gray-600">Researchers & staff positions</p>
                     </CardContent>
+                    <div className="absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r from-purple-400 to-purple-600 transition-all duration-300 group-hover:w-full"></div>
                   </Card>
                   
-                  <Card className="hover:shadow-lg transition-all duration-300">
-                    <CardContent className="p-6 text-center">
-                      <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                        <Database className="w-8 h-8 text-white" />
+                  <Card className="group relative overflow-hidden border-2 border-transparent hover:border-blue-200 bg-gradient-to-br from-white to-blue-50/30 hover:shadow-2xl transition-all duration-300 hover:scale-105">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <CardContent className="p-6 text-center relative z-10">
+                      <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
+                        <Database className="w-8 h-8 text-white group-hover:rotate-12 transition-transform duration-300" />
                       </div>
-                      <div className="text-3xl font-bold text-gray-900 mb-2">
+                      <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform duration-300 inline-block">
                         {(platformOverview?.totalProjects || 0).toLocaleString()}
                       </div>
-                      <h3 className="text-base font-semibold text-gray-900 mb-1">Total Projects</h3>
+                      <h3 className="text-base font-semibold text-gray-900 mb-1 group-hover:text-blue-700 transition-colors">Total Projects</h3>
                       <p className="text-xs text-gray-600">All projects in database</p>
                     </CardContent>
+                    <div className="absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-300 group-hover:w-full"></div>
                   </Card>
                 </div>
+
+                {/* Charts Section for Key Highlights */}
+                {!isLoading && (
+                  <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Bar Chart - Key Metrics Comparison */}
+                    <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                      <CardHeader className="text-center pb-2">
+                        <CardTitle className="text-xl font-bold text-gray-900">Key Metrics Overview</CardTitle>
+                        <p className="text-sm text-gray-600">Comparison of projects, outputs, and resources</p>
+                      </CardHeader>
+                      <CardContent className="pt-4">
+                        <div className="h-80">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                              data={[
+                                { name: 'Active', value: fundingStats?.activeProjects || 0, fill: '#3b82f6' },
+                                { name: 'Completed', value: fundingStats?.completedProjects || 0, fill: '#22c55e' },
+                                { name: 'Publications', value: fundingStats?.projectOutput?.publications || 0, fill: '#a855f7' },
+                                { name: 'Equipment', value: fundingStats?.projectOutput?.equipment || 0, fill: '#f97316' },
+                                { name: 'Manpower', value: fundingStats?.projectOutput?.manpower || 0, fill: '#06b6d4' },
+                              ]}
+                              margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                              <XAxis 
+                                dataKey="name" 
+                                tick={{ fill: '#6b7280', fontSize: 12 }} 
+                                angle={-45}
+                                textAnchor="end"
+                                height={60}
+                              />
+                              <YAxis tick={{ fill: '#6b7280' }} />
+                              <Tooltip 
+                                content={({ active, payload }) => {
+                                  if (active && payload && payload.length) {
+                                    return (
+                                      <div className="bg-white p-3 shadow-lg rounded-lg border border-gray-200">
+                                        <p className="font-semibold text-gray-900">{payload[0].payload.name}</p>
+                                        <p className="text-gray-600">Count: <span className="font-bold">{payload[0].value}</span></p>
+                                      </div>
+                                    )
+                                  }
+                                  return null
+                                }}
+                              />
+                              <Bar 
+                                dataKey="value" 
+                                radius={[4, 4, 0, 0]}
+                                fill="#3b82f6"
+                              >
+                                {[
+                                  { fill: '#3b82f6' },
+                                  { fill: '#22c55e' },
+                                  { fill: '#a855f7' },
+                                  { fill: '#f97316' },
+                                  { fill: '#06b6d4' },
+                                ].map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                                ))}
+                              </Bar>
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Pie Chart - Resource Allocation */}
+                    <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                      <CardHeader className="text-center pb-2">
+                        <CardTitle className="text-xl font-bold text-gray-900">Resource Distribution</CardTitle>
+                        <p className="text-sm text-gray-600">Allocation of research resources</p>
+                      </CardHeader>
+                      <CardContent className="pt-4">
+                        <div className="h-80">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie
+                                data={[
+                                  { name: 'Publications', value: fundingStats?.projectOutput?.publications || 0 },
+                                  { name: 'Equipment', value: fundingStats?.projectOutput?.equipment || 0 },
+                                  { name: 'Manpower', value: fundingStats?.projectOutput?.manpower || 0 },
+                                ].filter(item => item.value > 0)}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={60}
+                                outerRadius={100}
+                                paddingAngle={5}
+                                dataKey="value"
+                                label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                                labelLine={{ stroke: '#6b7280', strokeWidth: 1 }}
+                              >
+                                <Cell fill="#a855f7" stroke="#fff" strokeWidth={2} />
+                                <Cell fill="#f97316" stroke="#fff" strokeWidth={2} />
+                                <Cell fill="#06b6d4" stroke="#fff" strokeWidth={2} />
+                              </Pie>
+                              <Tooltip content={<CustomTooltip />} />
+                              <Legend 
+                                verticalAlign="bottom" 
+                                height={36}
+                                formatter={(value) => <span className="text-gray-700 font-medium">{value}</span>}
+                              />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -676,7 +1217,7 @@ const HomePage = () => {
             <div className="flex animate-scroll-right-to-left space-x-8">
               {importantLinks.map((link, index) => (
                 <div key={index} className="flex-shrink-0 text-center">
-                  <div className="bg-white p-4 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer w-40 shadow-sm hover:shadow-md">
+                  <div className="glass-card p-4 hover:shadow-xl transition-all cursor-pointer w-40">
                     <div className="w-32 h-32 bg-white rounded-lg mx-auto flex items-center justify-center overflow-hidden">
                       <img 
                         src={link.image} 
@@ -697,7 +1238,7 @@ const HomePage = () => {
               {/* Duplicate for seamless loop */}
               {importantLinks.map((link, index) => (
                 <div key={`duplicate-${index}`} className="flex-shrink-0 text-center">
-                  <div className="bg-white p-4 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer w-40 shadow-sm hover:shadow-md">
+                  <div className="glass-card p-4 hover:shadow-xl transition-all cursor-pointer w-40">
                     <div className="w-32 h-32 bg-white rounded-lg mx-auto flex items-center justify-center overflow-hidden">
                       <img 
                         src={link.image} 

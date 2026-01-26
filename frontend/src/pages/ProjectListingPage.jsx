@@ -31,6 +31,7 @@ import {
 } from "lucide-react"
 import { useGetPublicProjectsQuery } from "../store/api/publicApi"
 import { useGetDisciplinesQuery } from "../store/api/categoryApi"
+import { formatCurrencyInLakhsOrCrores } from "../lib/utils"
 
 const ProjectListingPage = () => {
   const [searchFilters, setSearchFilters] = useState({
@@ -139,7 +140,7 @@ const ProjectListingPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Header />
 
       {/* Fixed Sidebar */}
@@ -398,7 +399,11 @@ const ProjectListingPage = () => {
                                       {project.startDate ? new Date(project.startDate).getFullYear() : "N/A"}
                                     </TableCell>
                                     <TableCell className="font-medium">
-                                      {formatCurrency(project.funding?.approvedBudget || 0)}
+                                      {formatCurrencyInLakhsOrCrores(
+                                        project.budget?.totalAmount || 
+                                        project.funding?.approvedBudget || 
+                                        0
+                                      )}
                                     </TableCell>
                                     <TableCell>
                                       <div className="flex space-x-2">

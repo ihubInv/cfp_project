@@ -66,8 +66,10 @@ const getPublicProjectById = async (req, res) => {
             validationStatus: { $ne: "Rejected" } // Show all except rejected
         })
             .populate("createdBy", "firstName lastName")
+            .lean() // Convert to plain object to ensure all fields including patents are included
 
         console.log("Project found:", project ? "Yes" : "No") // Debug log
+        console.log("Project patents:", project ? (project.patents ? project.patents.length : "No patents array") : "No project")
         
         if (!project) {
             return res.status(404).json({ message: "Project not found" })
@@ -169,6 +171,8 @@ const getAllProjects = async (req, res) => {
             search,
             discipline,
             year,
+            status,
+            validationStatus,
             sortBy = "createdAt",
             sortOrder = "desc",
         } = req.query
@@ -192,6 +196,18 @@ const getAllProjects = async (req, res) => {
         if (year) {
             query["budget.sanctionYear"] = parseInt(year)
         }
+        
+        // Filter by validationStatus (preferred) or status (for backward compatibility)
+        if (validationStatus) {
+            query.validationStatus = validationStatus
+        } else if (status) {
+            // Map status to validationStatus for backward compatibility
+            if (status === "Ongoing" || status === "Completed") {
+                query.validationStatus = status
+            } else {
+                query.status = status
+            }
+        }
 
         const sort = {}
         sort[sortBy] = sortOrder === "desc" ? -1 : 1
@@ -202,6 +218,7 @@ const getAllProjects = async (req, res) => {
             .sort(sort)
             .limit(limit * 1)
             .skip((page - 1) * limit)
+            .lean() // Convert to plain objects to ensure all fields including patents are included
 
         const total = await Project.countDocuments(query)
 
@@ -238,7 +255,7 @@ const createProject = async (req, res) => {
             for (const coPI of req.body.coPrincipalInvestigators) {
                 if (coPI.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(coPI.email)) {
                     return res.status(400).json({ message: `Invalid Co-PI email format: ${coPI.email}` })
-                }
+        }
             }
         }
         
@@ -258,6 +275,12 @@ const createProject = async (req, res) => {
         // Ensure coPrincipalInvestigators is an array (can be empty)
         if (!req.body.coPrincipalInvestigators) {
             req.body.coPrincipalInvestigators = []
+        } else {
+            // Ensure each Co-PI has affiliationType set
+            req.body.coPrincipalInvestigators = req.body.coPrincipalInvestigators.map(coPI => ({
+                ...coPI,
+                affiliationType: coPI.affiliationType || "Institute", // Default to Institute if not set
+            }))
         }
 
         // Generate file number if not provided
@@ -281,6 +304,8 @@ const createProject = async (req, res) => {
             discipline: req.body.discipline || '',
             scheme: req.body.scheme || '',
             projectSummary: req.body.projectSummary || '',
+            // Set validationStatus - default to "Ongoing" if not provided
+            validationStatus: req.body.validationStatus || "Ongoing",
             // Set legacy fields for backward compatibility
             pi: (req.body.principalInvestigators && req.body.principalInvestigators.length > 0) 
                 ? req.body.principalInvestigators[0] 
@@ -290,6 +315,8 @@ const createProject = async (req, res) => {
                 : {},
         }
 
+        // Debug: Log validationStatus
+        console.log(`Creating project with validationStatus: "${projectData.validationStatus}"`)
         console.log("Project data to save:", JSON.stringify(projectData, null, 2))
 
         const project = new Project(projectData)
@@ -351,6 +378,24 @@ const updateProject = async (req, res) => {
             return res.status(404).json({ message: "Project not found" })
         }
 
+        // Debug: Log incoming update data
+        console.log(`=== Updating Project ${projectId} ===`)
+        console.log("Request body keys:", Object.keys(req.body))
+        console.log("ValidationStatus in request:", req.body.validationStatus)
+        console.log("Title in request:", req.body.title)
+        
+        // Debug: Log Co-PI data specifically
+        if (req.body.coPrincipalInvestigators) {
+            console.log("Co-PI array in request:", JSON.stringify(req.body.coPrincipalInvestigators, null, 2))
+            req.body.coPrincipalInvestigators.forEach((coPI, index) => {
+                console.log(`Co-PI ${index + 1}:`, {
+                    name: coPI.name,
+                    affiliationType: coPI.affiliationType,
+                    instituteName: coPI.instituteName
+                })
+            })
+        }
+
         // Ensure backward compatibility by setting legacy fields
         const updateData = {
             ...req.body,
@@ -360,11 +405,84 @@ const updateProject = async (req, res) => {
             coPI: req.body.coPrincipalInvestigators?.[0] || project.coPI || {},
         }
 
-        const updatedProject = await Project.findByIdAndUpdate(
+        // Ensure arrays are properly set (replace entire arrays, not merge)
+        // This is critical for nested array updates in Mongoose
+        if (req.body.coPrincipalInvestigators !== undefined) {
+            // Ensure each Co-PI has affiliationType set
+            updateData.coPrincipalInvestigators = req.body.coPrincipalInvestigators.map(coPI => ({
+                ...coPI,
+                affiliationType: coPI.affiliationType || "Institute", // Default to Institute if not set
+            }))
+        }
+        if (req.body.principalInvestigators !== undefined) {
+            updateData.principalInvestigators = req.body.principalInvestigators
+        }
+        
+        // Debug: Log update data
+        console.log("Update data keys:", Object.keys(updateData))
+        console.log("Update data validationStatus:", updateData.validationStatus)
+        if (updateData.coPrincipalInvestigators) {
+            console.log("Co-PI array in updateData:", JSON.stringify(updateData.coPrincipalInvestigators, null, 2))
+        }
+        
+        // For nested arrays, we need to explicitly set them and mark as modified
+        // This ensures Mongoose properly updates the nested array fields
+        if (updateData.coPrincipalInvestigators !== undefined) {
+            project.coPrincipalInvestigators = updateData.coPrincipalInvestigators
+            project.markModified('coPrincipalInvestigators')
+        }
+        if (updateData.principalInvestigators !== undefined) {
+            project.principalInvestigators = updateData.principalInvestigators
+            project.markModified('principalInvestigators')
+        }
+        if (updateData.patents !== undefined) {
+            // Ensure patents is an array (even if empty)
+            project.patents = Array.isArray(updateData.patents) ? updateData.patents : []
+            project.markModified('patents')
+            console.log("Updated patents array:", JSON.stringify(project.patents, null, 2))
+        }
+        
+        // Update other fields using findByIdAndUpdate
+        // Remove arrays from updateData since we're handling them separately
+        const { coPrincipalInvestigators, principalInvestigators, patents, ...otherFields } = updateData
+        const otherUpdateData = {
+            ...otherFields,
+            lastUpdatedBy: userId,
+            pi: updateData.principalInvestigators?.[0] || project.pi || {},
+            coPI: updateData.coPrincipalInvestigators?.[0] || project.coPI || {},
+        }
+        
+        // Update non-array fields
+        await Project.findByIdAndUpdate(
             projectId,
-            updateData,
-            { new: true, runValidators: true }
+            otherUpdateData,
+            { runValidators: true }
         )
+        
+        // Save the project to persist the array changes
+        await project.save()
+        
+        // Refetch to get the complete updated project
+        const updatedProject = await Project.findById(projectId)
+            .populate("createdBy", "firstName lastName")
+            .populate("lastUpdatedBy", "firstName lastName")
+        
+        // Debug: Verify the update
+        console.log(`Project ${projectId} updated successfully`)
+        console.log("Updated project validationStatus:", updatedProject.validationStatus)
+        console.log("Updated project title:", updatedProject.title)
+        
+        // Debug: Verify Co-PI data was saved
+        if (updatedProject.coPrincipalInvestigators) {
+            console.log("Co-PI array after update:", JSON.stringify(updatedProject.coPrincipalInvestigators, null, 2))
+            updatedProject.coPrincipalInvestigators.forEach((coPI, index) => {
+                console.log(`Co-PI ${index + 1} after update:`, {
+                    name: coPI.name,
+                    affiliationType: coPI.affiliationType,
+                    instituteName: coPI.instituteName
+                })
+            })
+        }
 
         // Log activity
         await ActivityLog.create({

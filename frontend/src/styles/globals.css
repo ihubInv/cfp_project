@@ -2,6 +2,49 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Glassmorphism Utilities */
+@layer utilities {
+  .glass {
+    @apply bg-white/80 backdrop-blur-md border border-white/30 shadow-lg;
+  }
+  
+  .glass-strong {
+    @apply bg-white/90 backdrop-blur-lg border border-white/40 shadow-xl;
+  }
+  
+  .glass-light {
+    @apply bg-white/70 backdrop-blur-sm border border-white/20 shadow-md;
+  }
+  
+  .glass-section {
+    @apply bg-white/75 backdrop-blur-md border border-white/25 shadow-lg;
+  }
+  
+  .glass-header {
+    @apply bg-white/85 backdrop-blur-lg border-b border-white/30 shadow-md;
+  }
+  
+  .glass-footer {
+    @apply bg-white/80 backdrop-blur-md border-t border-white/30 shadow-lg;
+  }
+  
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-md border border-white/30 shadow-lg rounded-lg;
+  }
+  
+  .glass-modal {
+    @apply bg-white/90 backdrop-blur-xl border border-white/40 shadow-2xl;
+  }
+  
+  .glass-button {
+    @apply bg-white/80 backdrop-blur-md border border-white/30 shadow-md hover:bg-white/90 hover:shadow-lg transition-all;
+  }
+  
+  .glass-dropdown {
+    @apply bg-white/90 backdrop-blur-lg border border-white/30 shadow-xl;
+  }
+}
+
 /* Custom Government Style Components */
 @layer components {
   .gov-header {
@@ -9,7 +52,7 @@
   }
   
   .gov-main-header {
-    @apply bg-white shadow-lg sticky top-0 z-50;
+    @apply glass-header sticky top-0 z-50;
   }
   
   .gov-nav-link {
@@ -17,15 +60,15 @@
   }
   
   .gov-dropdown {
-    @apply absolute top-full left-0 mt-1 w-64 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200;
+    @apply absolute top-full left-0 mt-1 w-64 glass-dropdown rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200;
   }
   
   .gov-dropdown-item {
-    @apply block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors;
+    @apply block px-4 py-2 text-sm text-gray-700 hover:bg-white/50 transition-colors;
   }
   
   .gov-stat-card {
-    @apply bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-6;
+    @apply glass-card hover:shadow-xl transition-shadow duration-300 p-6;
   }
   
   .gov-stat-number {
@@ -37,7 +80,7 @@
   }
   
   .gov-tab-nav {
-    @apply border-b border-gray-200;
+    @apply border-b border-white/30;
   }
   
   .gov-tab-button {
@@ -49,7 +92,7 @@
   }
   
   .gov-tab-inactive {
-    @apply border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300;
+    @apply border-transparent text-gray-500 hover:text-gray-700 hover:border-white/30;
   }
   
   .gov-badge {
@@ -57,19 +100,19 @@
   }
   
   .gov-badge-blue {
-    @apply bg-[#0d559e] text-white;
+    @apply bg-[#0d559e]/90 text-white backdrop-blur-sm;
   }
   
   .gov-badge-green {
-    @apply bg-green-100 text-green-800;
+    @apply bg-white/80 text-green-800 backdrop-blur-sm border border-white/30;
   }
   
   .gov-badge-purple {
-    @apply bg-purple-100 text-purple-800;
+    @apply bg-white/80 text-purple-800 backdrop-blur-sm border border-white/30;
   }
   
   .gov-badge-orange {
-    @apply bg-orange-100 text-orange-800;
+    @apply bg-white/80 text-orange-800 backdrop-blur-sm border border-white/30;
   }
 }
 
@@ -125,7 +168,12 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-white text-foreground;
+  }
+  
+  /* Ensure white background for all pages */
+  html {
+    @apply bg-white;
   }
 }
 

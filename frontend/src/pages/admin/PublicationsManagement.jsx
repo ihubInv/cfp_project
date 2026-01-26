@@ -156,14 +156,19 @@ const PublicationsManagement = () => {
   const stats = statsData?.stats || { total: 0, published: 0, underReview: 0, submitted: 0, draft: 0 }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen p-6">
       {/* Page Header */}
-      <div className="flex justify-between items-start">
+      <div className="flex justify-between items-start mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Publications Management</h1>
-          <p className="text-gray-600">Manage research publications and academic papers</p>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+            Publications Management
+          </h1>
+          <p className="text-gray-600 text-lg">Manage research publications and academic papers</p>
         </div>
-        <Button onClick={handleNewPublication} className="bg-[#0d559e] hover:bg-[#0d559e]/90">
+        <Button 
+          onClick={handleNewPublication} 
+          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+        >
           <Plus className="h-4 w-4 mr-2" />
           Add Publication
         </Button>
@@ -171,55 +176,76 @@ const PublicationsManagement = () => {
 
       {/* Publication Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Publications</CardTitle>
+        <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 border-transparent hover:border-blue-200 overflow-hidden relative bg-gradient-to-br from-white to-blue-50/30">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+            <CardTitle className="text-sm font-semibold text-gray-700 group-hover:text-blue-700 transition-colors">Total Publications</CardTitle>
+            <div className="bg-blue-100 group-hover:bg-blue-200 rounded-full p-2 transition-all duration-300 group-hover:scale-110">
             <FileText className="h-4 w-4 text-blue-600" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground">All publications</p>
+          <CardContent className="relative z-10">
+            <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300 inline-block">
+              {stats.total}
+            </div>
+            <p className="text-xs text-gray-600 group-hover:text-gray-700 transition-colors mt-2">All publications</p>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Published</CardTitle>
+        <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 border-transparent hover:border-green-200 overflow-hidden relative bg-gradient-to-br from-white to-green-50/30">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+            <CardTitle className="text-sm font-semibold text-gray-700 group-hover:text-green-700 transition-colors">Published</CardTitle>
+            <div className="bg-green-100 group-hover:bg-green-200 rounded-full p-2 transition-all duration-300 group-hover:scale-110">
             <FileText className="h-4 w-4 text-green-600" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.published}</div>
-            <p className="text-xs text-muted-foreground">Published papers</p>
+          <CardContent className="relative z-10">
+            <div className="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300 inline-block">
+              {stats.published}
+            </div>
+            <p className="text-xs text-gray-600 group-hover:text-gray-700 transition-colors mt-2">Published papers</p>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Under Review</CardTitle>
+        <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 border-transparent hover:border-yellow-200 overflow-hidden relative bg-gradient-to-br from-white to-yellow-50/30">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-yellow-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+            <CardTitle className="text-sm font-semibold text-gray-700 group-hover:text-yellow-700 transition-colors">Under Review</CardTitle>
+            <div className="bg-yellow-100 group-hover:bg-yellow-200 rounded-full p-2 transition-all duration-300 group-hover:scale-110">
             <FileText className="h-4 w-4 text-yellow-600" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.underReview}</div>
-            <p className="text-xs text-muted-foreground">In review process</p>
+          <CardContent className="relative z-10">
+            <div className="text-3xl font-bold bg-gradient-to-r from-yellow-600 to-yellow-700 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300 inline-block">
+              {stats.underReview}
+            </div>
+            <p className="text-xs text-gray-600 group-hover:text-gray-700 transition-colors mt-2">In review process</p>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Submitted</CardTitle>
-            <FileText className="h-4 w-4 text-blue-600" />
+        <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 border-transparent hover:border-indigo-200 overflow-hidden relative bg-gradient-to-br from-white to-indigo-50/30">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-400/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+            <CardTitle className="text-sm font-semibold text-gray-700 group-hover:text-indigo-700 transition-colors">Submitted</CardTitle>
+            <div className="bg-indigo-100 group-hover:bg-indigo-200 rounded-full p-2 transition-all duration-300 group-hover:scale-110">
+              <FileText className="h-4 w-4 text-indigo-600" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.submitted}</div>
-            <p className="text-xs text-muted-foreground">Recently submitted</p>
+          <CardContent className="relative z-10">
+            <div className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-indigo-700 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300 inline-block">
+              {stats.submitted}
+            </div>
+            <p className="text-xs text-gray-600 group-hover:text-gray-700 transition-colors mt-2">Recently submitted</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filters</CardTitle>
+      <Card className="group hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-blue-200 overflow-hidden relative bg-gradient-to-br from-white to-blue-50/20">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-400/10 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <CardHeader className="relative z-10">
+          <CardTitle className="text-lg font-bold text-gray-800 group-hover:text-blue-700 transition-colors">Filters</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -252,12 +278,15 @@ const PublicationsManagement = () => {
       </Card>
 
       {/* Publications Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Publications ({data?.total || 0})</CardTitle>
-          <CardDescription>Manage research publications and academic papers</CardDescription>
+      <Card className="group hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-purple-200 overflow-hidden relative bg-gradient-to-br from-white to-purple-50/20">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-400/10 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <CardHeader className="relative z-10">
+          <CardTitle className="text-lg font-bold text-gray-800 group-hover:text-purple-700 transition-colors">
+            Publications <span className="text-purple-600">({data?.total || 0})</span>
+          </CardTitle>
+          <CardDescription className="text-gray-600">Manage research publications and academic papers</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="relative z-10">
           {isLoading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -280,19 +309,22 @@ const PublicationsManagement = () => {
               </TableHeader>
               <TableBody>
                 {data?.publications?.map((publication) => (
-                  <TableRow key={publication._id}>
+                  <TableRow 
+                    key={publication._id}
+                    className="group/row hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 transition-all duration-300 cursor-pointer hover:shadow-md"
+                  >
                     <TableCell className="font-medium max-w-xs">
-                      <div className="truncate">{publication.name}</div>
+                      <div className="truncate group-hover/row:text-gray-900 transition-colors">{publication.name}</div>
                     </TableCell>
                     <TableCell>
                       <div className="max-w-xs">
-                        <p className="truncate text-sm font-medium">{publication.projectTitle}</p>
-                        <p className="text-xs text-gray-500">{publication.projectFileNumber}</p>
+                        <p className="truncate text-sm font-medium group-hover/row:text-gray-900 transition-colors">{publication.projectTitle}</p>
+                        <p className="text-xs text-gray-500 group-hover/row:text-gray-600 transition-colors">{publication.projectFileNumber}</p>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="max-w-xs">
-                        <p className="truncate text-sm">{publication.publicationDetail}</p>
+                        <p className="truncate text-sm group-hover/row:text-gray-800 transition-colors">{publication.publicationDetail}</p>
                       </div>
                     </TableCell>
                     <TableCell>{getStatusBadge(publication.status)}</TableCell>
@@ -303,6 +335,7 @@ const PublicationsManagement = () => {
                           size="sm"
                           onClick={() => handleEditPublication(publication)}
                           title="Edit Publication"
+                          className="hover:bg-green-100 hover:text-green-700 transition-all duration-300 hover:scale-110"
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -313,6 +346,7 @@ const PublicationsManagement = () => {
                           onClick={() => handleDeletePublication(publication._id)}
                           disabled={isDeleting}
                           title="Delete Publication"
+                          className="hover:bg-red-100 hover:text-red-700 transition-all duration-300 hover:scale-110 disabled:opacity-50"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -326,16 +360,17 @@ const PublicationsManagement = () => {
 
           {/* Pagination */}
           {data?.totalPages > 1 && (
-            <div className="flex justify-center space-x-2 mt-4">
+            <div className="flex justify-center items-center space-x-2 mt-6">
               <Button
                 variant="outline"
                 disabled={filters.page <= 1}
                 onClick={() => handleFilterChange("page", filters.page - 1)}
+                className="border-2 border-gray-300 hover:border-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-all duration-300 hover:scale-105 disabled:opacity-50"
               >
                 Previous
               </Button>
-              <span className="flex items-center px-4 text-sm text-gray-600">
-                Page {filters.page} of {data.totalPages}
+              <span className="flex items-center px-4 py-2 text-sm font-semibold text-gray-700 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-gray-200">
+                Page <span className="mx-1 text-blue-600">{filters.page}</span> of <span className="mx-1 text-purple-600">{data.totalPages}</span>
               </span>
               <Button
                 variant="outline"

@@ -24,7 +24,7 @@ import {
 import { useGetPublicProjectsQuery } from "../store/api/publicApi"
 import { useGetDisciplinesQuery } from "../store/api/categoryApi"
 import { useGetSchemesQuery } from "../store/api/schemeApi"
-import { formatCurrencyInCrores } from "../lib/utils"
+import { formatCurrencyInLakhsOrCrores } from "../lib/utils"
 
 const ProjectsPage = () => {
   const [searchFilters, setSearchFilters] = useState({
@@ -99,7 +99,7 @@ const ProjectsPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Header />
 
       {/* Main Content */}
@@ -262,16 +262,28 @@ const ProjectsPage = () => {
                         <TableHeader>
                           <TableRow className="bg-gradient-to-r from-[#0d559e] to-[#004d8c] hover:bg-gradient-to-r hover:from-[#0d559e] hover:to-[#004d8c]">
                             <TableHead className="w-[200px] text-white font-semibold text-sm">Project Title</TableHead>
+                            <TableHead className="w-[120px] text-white font-semibold text-sm">Scheme</TableHead>
+                            <TableHead className="w-[120px] text-white font-semibold text-sm">Category</TableHead>
                             <TableHead className="w-[150px] text-white font-semibold text-sm">Principal Investigator</TableHead>
                             <TableHead className="w-[150px] text-white font-semibold text-sm">Institution</TableHead>
-                            <TableHead className="w-[120px] text-white font-semibold text-sm">Category</TableHead>
-                            <TableHead className="w-[120px] text-white font-semibold text-sm">Scheme</TableHead>
-                            <TableHead className="w-[100px] text-white font-semibold text-sm">Budget</TableHead>
+                            <TableHead className="w-[100px] text-white font-semibold text-sm">Budget (INR)</TableHead>
                             <TableHead className="w-[80px] text-white font-semibold text-sm">Actions</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {projectsData.projects.map((project) => (
+                          {projectsData.projects.map((project) => {
+                            // Debug: Log budget data for troubleshooting
+                            if (project.budget?.totalAmount === 0 || !project.budget?.totalAmount) {
+                              console.log("Project budget debug:", {
+                                projectId: project._id,
+                                projectTitle: project.title,
+                                budget: project.budget,
+                                totalAmount: project.budget?.totalAmount,
+                                funding: project.funding,
+                                totalCost: project.totalCost
+                              })
+                            }
+                            return (
                             <TableRow key={project._id} className="hover:bg-gray-50">
                               <TableCell className="font-medium">
                                 <div className="max-w-[200px]">
@@ -282,6 +294,16 @@ const ProjectsPage = () => {
                                     File No: {project.fileNumber || project.projectId || project._id?.slice(-8)}
                                   </p>
                                 </div>
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="secondary" className="text-xs">
+                                  {project.scheme || "N/A"}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className="text-xs">
+                                  {project.projectCategory || project.discipline || "N/A"}
+                                </Badge>
                               </TableCell>
                               <TableCell>
                                 <div className="max-w-[150px]">
@@ -311,19 +333,14 @@ const ProjectsPage = () => {
                                 </div>
                               </TableCell>
                               <TableCell>
-                                <Badge variant="outline" className="text-xs">
-                                  {project.projectCategory || project.discipline || "N/A"}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant="secondary" className="text-xs">
-                                  {project.scheme || "N/A"}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>
                                 <div className="text-sm">
                                   <p className="font-medium text-gray-900">
-                                    {formatCurrencyInCrores(project.budget?.totalAmount || project.funding?.approvedBudget || project.totalCost || 0)}
+                                    {formatCurrencyInLakhsOrCrores(
+                                      project.budget?.totalAmount || 
+                                      project.funding?.approvedBudget || 
+                                      project.totalCost || 
+                                      0
+                                    )}
                                   </p>
                                   <p className="text-xs text-gray-500">
                                     {project.funding?.fundingStatus || ""}
@@ -343,7 +360,8 @@ const ProjectsPage = () => {
                                 </Button>
                               </TableCell>
                             </TableRow>
-                          ))}
+                            )
+                          })}
                         </TableBody>
                       </Table>
                     </div>

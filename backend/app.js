@@ -33,7 +33,9 @@ connectDB()
 app.use(helmet())
 app.use(
     cors({
-        origin: process.env.FRONTEND_URL || "http://72.60.206.223:3000",
+        origin: process.env.FRONTEND_URL 
+            ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
+            : ["http://72.60.206.223:3000", "http://cfpihubiitmandi.cloud", "https://cfpihubiitmandi.cloud", "http://www.cfpihubiitmandi.cloud", "https://www.cfpihubiitmandi.cloud"],
         credentials: true,
     }),
 )

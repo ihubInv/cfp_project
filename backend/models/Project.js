@@ -35,6 +35,7 @@ const projectSchema = new mongoose.Schema(
             instituteName: { type: String, required: false },
             department: { type: String, required: false },
             instituteAddress: { type: String, required: false },
+            affiliationType: { type: String, enum: ["Institute", "Industry"], default: "Institute" },
         }],
         
         // Multiple Co-Principal Investigators
@@ -45,6 +46,7 @@ const projectSchema = new mongoose.Schema(
             instituteName: { type: String },
             department: { type: String },
             instituteAddress: { type: String },
+            affiliationType: { type: String, enum: ["Institute", "Industry"], default: "Institute" },
         }],
         
         // Legacy fields for backward compatibility
@@ -55,6 +57,7 @@ const projectSchema = new mongoose.Schema(
             instituteName: { type: String },
             department: { type: String },
             instituteAddress: { type: String },
+            affiliationType: { type: String, enum: ["Institute", "Industry"], default: "Institute" },
         },
         
         coPI: {
@@ -64,6 +67,7 @@ const projectSchema = new mongoose.Schema(
             instituteName: { type: String },
             department: { type: String },
             instituteAddress: { type: String },
+            affiliationType: { type: String, enum: ["Institute", "Industry"], default: "Institute" },
         },
         
         // Equipment Sanctioned
@@ -83,9 +87,10 @@ const projectSchema = new mongoose.Schema(
         
         // Publications
         publications: [{
-            name: { type: String, required: false },
-            publicationDetail: { type: String, required: false },
-            status: { type: String, required: false },
+            link: { type: String, required: false }, // Publication URL/link
+            name: { type: String, required: false }, // Legacy field for backward compatibility
+            publicationDetail: { type: String, required: false }, // Legacy field for backward compatibility
+            status: { type: String, required: false }, // Legacy field for backward compatibility
         }],
         
         // Budget Information
@@ -95,10 +100,33 @@ const projectSchema = new mongoose.Schema(
             totalAmount: { type: Number, required: false },
         },
         
-        // Patent Details
+        // Patent Details (legacy - kept for backward compatibility)
         patentDetail: {
             type: String,
         },
+        
+        // Patents - Array of patent entries, each with details and document
+        patents: [{
+            patentDetail: { type: String, required: false }, // Description/details for this patent
+            patentDocument: { // Document for this specific patent
+                filename: { type: String, required: false },
+                originalName: { type: String, required: false },
+                path: { type: String, required: false },
+                mimetype: { type: String, required: false },
+                size: { type: Number, required: false },
+                uploadedAt: { type: Date, default: Date.now },
+            },
+        }],
+        
+        // Patent Documents (legacy - kept for backward compatibility)
+        patentDocuments: [{
+            filename: { type: String, required: true },
+            originalName: { type: String, required: true },
+            path: { type: String, required: true },
+            mimetype: { type: String, required: true },
+            size: { type: Number, required: true },
+            uploadedAt: { type: Date, default: Date.now },
+        }],
         
         // File Attachments
         attachments: [{
@@ -109,6 +137,17 @@ const projectSchema = new mongoose.Schema(
             size: { type: Number, required: true },
             uploadedAt: { type: Date, default: Date.now },
         }],
+        
+        // Project Status
+        validationStatus: {
+            type: String,
+            enum: ["Ongoing", "Completed", "Rejected", "Pending"],
+            default: "Ongoing",
+        },
+        status: {
+            type: String,
+            required: false,
+        },
         
         // System Fields
         role: {

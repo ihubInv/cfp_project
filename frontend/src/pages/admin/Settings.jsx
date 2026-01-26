@@ -538,11 +538,13 @@ const Settings = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen p-6">
       {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">System Settings</h1>
-        <p className="text-gray-600">Configure system-wide settings and preferences</p>
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+          System Settings
+        </h1>
+        <p className="text-gray-600 text-lg">Configure system-wide settings and preferences</p>
       </div>
 
       {saveMessage && (
@@ -565,20 +567,21 @@ const Settings = () => {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Settings Navigation */}
-          <Card className="lg:col-span-1">
-            <CardHeader>
-              <CardTitle>Settings</CardTitle>
+          <Card className="lg:col-span-1 group hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-blue-200 overflow-hidden relative bg-gradient-to-br from-white to-blue-50/20">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/10 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <CardHeader className="relative z-10">
+              <CardTitle className="text-lg font-bold text-gray-800 group-hover:text-blue-700 transition-colors">Settings</CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className="p-0 relative z-10">
               <nav className="space-y-1">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center px-4 py-3 text-left text-sm font-medium transition-colors ${
+                    className={`w-full flex items-center px-4 py-3 text-left text-sm font-medium transition-all duration-300 ${
                       activeTab === tab.id
-                        ? "bg-[#0d559e] text-white"
-                        : "text-gray-600 hover:bg-gray-100"
+                        ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md"
+                        : "text-gray-600 hover:bg-blue-50 hover:text-blue-700"
                     }`}
                   >
                     <tab.icon className="h-4 w-4 mr-3" />

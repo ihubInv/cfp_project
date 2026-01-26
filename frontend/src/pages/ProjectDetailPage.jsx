@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import { useParams, Link } from "react-router-dom"
 import { useGetPublicProjectByIdQuery } from "../store/api/publicApi"
 import { Button } from "../components/ui/button"
@@ -9,11 +10,27 @@ import { Separator } from "../components/ui/separator"
 import { Calendar, MapPin, DollarSign, User, Building, ArrowLeft, Mail, Clock, Award, Target, BookOpen, Users, FileText, Briefcase, TrendingUp } from "lucide-react"
 import Header from "../components/layout/Header"
 import Footer from "../components/layout/Footer"
-import { formatCurrencyInCrores } from "../lib/utils"
+import { formatCurrencyInLakhsOrCrores } from "../lib/utils"
 
 const ProjectDetailPage = () => {
   const { id } = useParams()
   const { data: project, isLoading, error } = useGetPublicProjectByIdQuery(id)
+  
+  // Debug: Log project data when it loads
+  React.useEffect(() => {
+    if (project) {
+      console.log("Project loaded in detail page:", {
+        id: project._id,
+        hasPatents: !!project.patents,
+        patentsLength: project.patents ? project.patents.length : 0,
+        patents: project.patents,
+        hasPatentDetail: !!project.patentDetail,
+        patentDetail: project.patentDetail,
+        hasPatentDocuments: !!project.patentDocuments,
+        patentDocumentsLength: project.patentDocuments ? project.patentDocuments.length : 0
+      })
+    }
+  }, [project])
 
 
   const formatDate = (dateString) => {
@@ -26,7 +43,7 @@ const ProjectDetailPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-white">
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center py-12">
@@ -41,7 +58,7 @@ const ProjectDetailPage = () => {
 
   if (error || !project) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-white">
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center py-12">
@@ -105,9 +122,13 @@ const ProjectDetailPage = () => {
 
               {/* Project Cost */}
               <div className="text-center">
-                <p className="text-sm text-gray-600 mb-2">Project Cost</p>
+                <p className="text-sm text-gray-600 mb-2">Project Cost (INR)</p>
                 <h4 className="text-lg font-semibold text-gray-900">
-                  {formatCurrencyInCrores(project.budget?.totalAmount || project.funding?.approvedBudget || 0)}
+                  {formatCurrencyInLakhsOrCrores(
+                    project.budget?.totalAmount || 
+                    project.funding?.approvedBudget || 
+                    0
+                  )}
                 </h4>
               </div>
 
@@ -115,7 +136,7 @@ const ProjectDetailPage = () => {
               <div className="text-center">
                 <p className="text-sm text-gray-600 mb-2">Start Date</p>
                 <h4 className="text-lg font-semibold text-gray-900">
-                  {project.startDate ? formatDate(project.startDate) : "N/A"}
+                  {project.budget?.date ? formatDate(project.budget.date) : (project.startDate ? formatDate(project.startDate) : "-")}
                 </h4>
               </div>
 
@@ -123,12 +144,29 @@ const ProjectDetailPage = () => {
               <div className="text-center">
                 <p className="text-sm text-gray-600 mb-2">Status</p>
                 <h4 className="text-lg font-semibold text-gray-900">
-                  {project.validationStatus || project.status || "N/A"}
+                  {project.validationStatus || project.status || "-"}
                 </h4>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Project Summary */}
+        <Card className="border-0 shadow-sm bg-white mb-6">
+          <CardHeader className="bg-gradient-to-r from-[#0d559e] to-[#004d8c] text-white rounded-t-lg">
+            <CardTitle className="flex items-center text-xl">
+              <FileText className="h-6 w-6 mr-3" />
+              Project Summary
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="prose prose-lg max-w-none">
+              <p className="text-gray-700 leading-relaxed text-base">
+                {project.projectSummary || project.abstract || "No project summary available"}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Project Output Boxes */}
         <div className="bg-white rounded-lg shadow-sm border mb-6">
@@ -166,14 +204,14 @@ const ProjectDetailPage = () => {
                 </h4>
               </div>
 
-              {/* Manpower Trained */}
+              {/* Manpower */}
               <div className="text-center">
                 <div className="flex justify-center mb-3">
                   <div className="p-3 bg-blue-100 rounded-full">
                     <Users className="h-6 w-6 text-[#0d559e]" />
                   </div>
                 </div>
-                <p className="text-sm text-gray-600 mb-2">Manpower Trained</p>
+                <p className="text-sm text-gray-600 mb-2">Manpower</p>
                 <h4 className="text-lg font-semibold text-gray-900">
                   {project.manpowerSanctioned?.reduce((total, item) => total + (item.number || 0), 0) || 0}
                 </h4>
@@ -196,22 +234,6 @@ const ProjectDetailPage = () => {
         </div>
 
         <div className="space-y-8">
-            {/* Project Summary */}
-            <Card className="border-0 shadow-sm bg-white">
-              <CardHeader className="bg-gradient-to-r from-[#0d559e] to-[#004d8c] text-white rounded-t-lg">
-                <CardTitle className="flex items-center text-xl">
-                  <FileText className="h-6 w-6 mr-3" />
-                  Project Summary
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="prose prose-lg max-w-none">
-                  <p className="text-gray-700 leading-relaxed text-base">
-                    {project.projectSummary || project.abstract || "No project summary available"}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
 
             {/* PI Details */}
             <Card className="border-0 shadow-sm bg-white">
@@ -229,7 +251,7 @@ const ProjectDetailPage = () => {
                       <p className="text-gray-900">
                         {project.principalInvestigators?.[0]?.name || 
                          project.principalInvestigator?.name || 
-                         "N/A"}
+                         "-"}
                       </p>
                     </div>
                     <div>
@@ -238,7 +260,7 @@ const ProjectDetailPage = () => {
                         {project.principalInvestigators?.[0]?.instituteName || 
                          project.principalInvestigator?.institute || 
                          project.organization?.name || 
-                         "N/A"}
+                         "-"}
                       </p>
                     </div>
                     <div>
@@ -246,7 +268,7 @@ const ProjectDetailPage = () => {
                       <p className="text-gray-900">
                         {project.principalInvestigators?.[0]?.instituteAddress || 
                          project.principalInvestigator?.instituteAddress || 
-                         "N/A"}
+                         "-"}
                       </p>
                     </div>
                   </div>
@@ -256,7 +278,7 @@ const ProjectDetailPage = () => {
                       <p className="text-gray-900">
                         {project.principalInvestigators?.[0]?.email || 
                          project.principalInvestigator?.email || 
-                         "N/A"}
+                         "-"}
                       </p>
                     </div>
                     <div>
@@ -264,7 +286,7 @@ const ProjectDetailPage = () => {
                       <p className="text-gray-900">
                         {project.principalInvestigators?.[0]?.designation || 
                          project.principalInvestigator?.designation || 
-                         "N/A"}
+                         "-"}
                       </p>
                     </div>
                     <div>
@@ -272,7 +294,7 @@ const ProjectDetailPage = () => {
                       <p className="text-gray-900">
                         {project.principalInvestigators?.[0]?.department || 
                          project.principalInvestigator?.department || 
-                         "N/A"}
+                         "-"}
                       </p>
                     </div>
                   </div>
@@ -280,13 +302,13 @@ const ProjectDetailPage = () => {
               </CardContent>
             </Card>
 
-            {/* Co-Principal Investigators */}
-            {(project.coPrincipalInvestigators && project.coPrincipalInvestigators.length > 0) && (
+            {/* Co-Principal Investigators - Institute */}
+            {project.coPrincipalInvestigators && project.coPrincipalInvestigators.filter(coPI => (coPI.affiliationType || "Institute") === "Institute").length > 0 && (
               <Card className="border-0 shadow-sm bg-white">
                 <CardHeader className="bg-gradient-to-r from-[#0d559e] to-[#004d8c] text-white rounded-t-lg">
                   <CardTitle className="flex items-center text-xl">
                     <Users className="h-6 w-6 mr-3" />
-                    CO-PI Details
+                    CO-PI Details (Institute)
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
@@ -295,21 +317,81 @@ const ProjectDetailPage = () => {
                         <thead>
                           <tr>
                             <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-900">Name</th>
+                            <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-900">Designation</th>
+                            <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-900">Email</th>
+                            <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-900">Department</th>
                             <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-900">Institute</th>
-                            <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-900">Institute Address</th>
                           </tr>
                         </thead>
                       <tbody>
-                        {project.coPrincipalInvestigators.map((coPI, index) => (
+                        {project.coPrincipalInvestigators
+                          .filter(coPI => (coPI.affiliationType || "Institute") === "Institute")
+                          .map((coPI, index) => (
                           <tr key={index} className="hover:bg-gray-50">
                             <td className="border border-gray-300 px-4 py-2 text-gray-900">
-                              {coPI.name || 'N/A'}
+                              {coPI.name || '-'}
                             </td>
                             <td className="border border-gray-300 px-4 py-2 text-gray-900">
-                              {coPI.instituteName || 'N/A'}
+                              {coPI.designation || '-'}
                             </td>
                             <td className="border border-gray-300 px-4 py-2 text-gray-900">
-                              {coPI.instituteAddress || 'N/A'}
+                              {coPI.email || '-'}
+                            </td>
+                            <td className="border border-gray-300 px-4 py-2 text-gray-900">
+                              {coPI.department || '-'}
+                            </td>
+                            <td className="border border-gray-300 px-4 py-2 text-gray-900">
+                              {coPI.instituteName || '-'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Co-Principal Investigators - Industry */}
+            {project.coPrincipalInvestigators && project.coPrincipalInvestigators.filter(coPI => coPI.affiliationType === "Industry").length > 0 && (
+              <Card className="border-0 shadow-sm bg-white">
+                <CardHeader className="bg-gradient-to-r from-[#0d559e] to-[#004d8c] text-white rounded-t-lg">
+                  <CardTitle className="flex items-center text-xl">
+                    <Users className="h-6 w-6 mr-3" />
+                    CO-PI Details (Industry)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse border border-gray-300">
+                        <thead>
+                          <tr>
+                            <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-900">Name</th>
+                            <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-900">Designation</th>
+                            <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-900">Email</th>
+                            <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-900">Department</th>
+                            <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-900">Industry</th>
+                          </tr>
+                        </thead>
+                      <tbody>
+                        {project.coPrincipalInvestigators
+                          .filter(coPI => coPI.affiliationType === "Industry")
+                          .map((coPI, index) => (
+                          <tr key={index} className="hover:bg-gray-50">
+                            <td className="border border-gray-300 px-4 py-2 text-gray-900">
+                              {coPI.name || '-'}
+                            </td>
+                            <td className="border border-gray-300 px-4 py-2 text-gray-900">
+                              {coPI.designation || '-'}
+                            </td>
+                            <td className="border border-gray-300 px-4 py-2 text-gray-900">
+                              {coPI.email || '-'}
+                            </td>
+                            <td className="border border-gray-300 px-4 py-2 text-gray-900">
+                              {coPI.department || '-'}
+                            </td>
+                            <td className="border border-gray-300 px-4 py-2 text-gray-900">
+                              {coPI.instituteName || '-'}
                             </td>
                           </tr>
                         ))}
@@ -345,10 +427,10 @@ const ProjectDetailPage = () => {
                           {project.manpowerSanctioned.map((manpower, index) => (
                             <tr key={index} className="hover:bg-gray-50">
                               <td className="border border-gray-300 px-4 py-2 text-gray-900">
-                                {manpower.manpowerType || 'N/A'}
+                                {manpower.manpowerType || '-'}
                               </td>
                               <td className="border border-gray-300 px-4 py-2 text-center text-gray-900">
-                                {manpower.number || 'N/A'}
+                                {manpower.number || '-'}
                               </td>
                             </tr>
                           ))}
@@ -382,13 +464,13 @@ const ProjectDetailPage = () => {
                           {project.equipmentSanctioned.map((equipment, index) => (
                             <tr key={index} className="hover:bg-gray-50">
                               <td className="border border-gray-300 px-4 py-2 text-gray-900">
-                                {equipment.genericName || 'N/A'}
+                                {equipment.genericName || '-'}
                               </td>
                               <td className="border border-gray-300 px-4 py-2 text-gray-900">
-                                {equipment.make || 'N/A'}
+                                {equipment.make || '-'}
                               </td>
                               <td className="border border-gray-300 px-4 py-2 text-gray-900">
-                                {equipment.model || 'N/A'}
+                                {equipment.model || '-'}
                               </td>
                             </tr>
                           ))}
@@ -417,12 +499,25 @@ const ProjectDetailPage = () => {
                         <div className="flex items-start space-x-3">
                           <span className="text-sm font-bold text-[#0d559e] mt-1">[{index + 1}]</span>
                           <div className="flex-1">
-                            <a href="#" className="text-[#0d559e] hover:underline font-medium text-base">
-                              {publication.name || 'N/A'}
-                            </a>
+                            {publication.link ? (
+                              <a 
+                                href={publication.link.startsWith('http') ? publication.link : `https://${publication.link}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[#0d559e] hover:text-[#004d8c] hover:underline font-medium text-base"
+                              >
+                                {publication.name || publication.link || 'Publication Link'}
+                              </a>
+                            ) : (
+                              <span className="text-[#0d559e] font-medium text-base">
+                              {publication.name || '-'}
+                              </span>
+                            )}
+                            {publication.publicationDetail && (
                             <div className="mt-2 text-sm text-gray-700 leading-relaxed">
-                              {publication.publicationDetail || publication.authors || 'N/A'}
+                                {publication.publicationDetail}
                             </div>
+                            )}
                             {publication.status && (
                               <div className="mt-2">
                                 <Badge variant="outline" className="text-xs">
@@ -439,8 +534,54 @@ const ProjectDetailPage = () => {
               </Card>
             )}
 
-            {/* Patent Details */}
-            {project.patentDetail && (
+            {/* Patents - Multiple Patent Entries */}
+            {project.patents && project.patents.length > 0 && (
+              <Card className="border-0 shadow-sm bg-white">
+                <CardHeader className="bg-gradient-to-r from-[#0d559e] to-[#004d8c] text-white rounded-t-lg">
+                  <CardTitle className="flex items-center text-xl">
+                    <Award className="h-6 w-6 mr-3" />
+                    Patents <span className="ml-2 text-lg font-normal">({project.patents.length})</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="space-y-6">
+                    {project.patents.map((patent, index) => (
+                      <div key={index} className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0">
+                        <div className="flex items-start space-x-3">
+                          <span className="text-sm font-bold text-[#0d559e] mt-1">[{index + 1}]</span>
+                          <div className="flex-1">
+                            {patent.patentDetail && (
+                              <p className="text-gray-700 leading-relaxed mb-3">{patent.patentDetail}</p>
+                            )}
+                            {patent.patentDocument && patent.patentDocument.filename && (
+                              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                                <FileText className="h-5 w-5 text-blue-600" />
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium text-gray-900">{patent.patentDocument.originalName}</p>
+                                  <p className="text-xs text-gray-500">
+                                    {(patent.patentDocument.size / 1024).toFixed(2)} KB • {new Date(patent.patentDocument.uploadedAt).toLocaleDateString()}
+                                  </p>
+                                </div>
+                                <a
+                                  href={`/api/files/projects/${project._id}/patent/${patent.patentDocument.filename}/download`}
+                                  download={patent.patentDocument.originalName}
+                                  className="text-[#0d559e] hover:text-[#004d8c] hover:underline text-sm font-medium"
+                                >
+                                  Download
+                                </a>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Legacy Patent Details (for backward compatibility) */}
+            {project.patentDetail && (!project.patents || project.patents.length === 0) && (
               <Card className="border-0 shadow-sm bg-white">
                 <CardHeader className="bg-gradient-to-r from-[#0d559e] to-[#004d8c] text-white rounded-t-lg">
                   <CardTitle className="flex items-center text-xl">

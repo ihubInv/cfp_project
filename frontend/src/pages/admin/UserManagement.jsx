@@ -63,7 +63,8 @@ const UserManagement = () => {
   console.log("UserManagement - error:", error)
   console.log("UserManagement - users count:", data?.users?.length || 0)
   console.log("UserManagement - total users:", data?.total || 0)
-  console.log("UserManagement - API URL:", process.env.REACT_APP_API_URL || "http://localhost:5000/api")
+  const apiUrl = process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'production' ? '/api' : 'http://72.60.206.223:5000/api')
+  console.log("UserManagement - API URL:", apiUrl)
   console.log("UserManagement - current user:", user)
   console.log("UserManagement - token exists:", !!token)
   console.log("UserManagement - user role:", user?.role)
@@ -211,12 +212,14 @@ const UserManagement = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen p-6">
       {/* Page Header */}
-      <div className="flex justify-between items-start">
+      <div className="flex justify-between items-start mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
-          <p className="text-gray-600">Manage system users and their permissions</p>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+            User Management
+          </h1>
+          <p className="text-gray-600 text-lg">Manage system users and their permissions</p>
         </div>
         <div className="flex space-x-2">
           <Button 
@@ -224,11 +227,15 @@ const UserManagement = () => {
             onClick={() => refetch()}
             disabled={isLoading}
             title="Refresh users list"
+            className="border-2 border-gray-300 hover:border-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-all duration-300 hover:scale-105"
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Button onClick={handleNewUser} className="bg-[#0d559e] hover:bg-[#0d559e]/90">
+          <Button 
+            onClick={handleNewUser} 
+            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+          >
             <Plus className="h-4 w-4 mr-2" />
             Add User
           </Button>
@@ -236,11 +243,12 @@ const UserManagement = () => {
       </div>
 
       {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filters</CardTitle>
+      <Card className="group hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-blue-200 overflow-hidden relative bg-gradient-to-br from-white to-blue-50/20">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-400/10 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <CardHeader className="relative z-10">
+          <CardTitle className="text-lg font-bold text-gray-800 group-hover:text-blue-700 transition-colors">Filters</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -283,10 +291,13 @@ const UserManagement = () => {
       </Card>
 
       {/* Users Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Users ({data?.total || 0})</CardTitle>
-          <CardDescription>Manage system users and their roles</CardDescription>
+      <Card className="group hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-purple-200 overflow-hidden relative bg-gradient-to-br from-white to-purple-50/20">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-400/10 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <CardHeader className="relative z-10">
+          <CardTitle className="text-lg font-bold text-gray-800 group-hover:text-purple-700 transition-colors">
+            Users <span className="text-purple-600">({data?.total || 0})</span>
+          </CardTitle>
+          <CardDescription className="text-gray-600">Manage system users and their roles</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -326,9 +337,12 @@ const UserManagement = () => {
               <TableBody>
                 {data?.users && data.users.length > 0 ? (
                   data.users.map((user) => (
-                    <TableRow key={user._id}>
+                    <TableRow 
+                      key={user._id}
+                      className="group/row hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 transition-all duration-300 cursor-pointer hover:shadow-md"
+                    >
                       <TableCell className="font-medium">
-                        {user.firstName} {user.lastName}
+                        <span className="group-hover/row:text-gray-900 transition-colors">{user.firstName} {user.lastName}</span>
                       </TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>{user.username}</TableCell>
@@ -343,6 +357,7 @@ const UserManagement = () => {
                             size="sm"
                             onClick={() => handleEditUser(user)}
                             title="Edit User"
+                            className="hover:bg-green-100 hover:text-green-700 transition-all duration-300 hover:scale-110"
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -353,6 +368,7 @@ const UserManagement = () => {
                             onClick={() => handleDeleteUser(user._id)}
                             disabled={isDeleting}
                             title="Deactivate User"
+                            className="hover:bg-red-100 hover:text-red-700 transition-all duration-300 hover:scale-110 disabled:opacity-50"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>

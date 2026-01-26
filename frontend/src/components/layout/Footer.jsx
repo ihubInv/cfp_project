@@ -13,7 +13,7 @@ import {
 
 const Footer = () => {
     return (
-        <footer className="bg-white shadow-lg border-t">
+        <footer className="glass-footer border-t">
             {/* Main Footer Content */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -26,8 +26,8 @@ const Footer = () => {
                                 className="w-24 h-24 object-contain mr-3"
                             />
                             <div>
-                                <h3 className="text-lg font-bold text-gray-900">IIT Mandi iHub & HCi Foundation</h3>
-                                <p className="text-sm text-gray-600">CFP Portal</p>
+                                <h3 className="text-lg font-bold text-gray-900">Call for Proposals (CfP)</h3>
+                                <p className="text-sm text-gray-500">Portal</p>
                             </div>
                         </div>
                         <p className="text-sm text-gray-600 leading-relaxed">
@@ -131,7 +131,7 @@ const Footer = () => {
             </div>
 
             {/* Bottom Footer */}
-            <div className="bg-gray-50 border-t">
+            <div className="glass-light border-t">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                     <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
                         <div className="text-sm text-gray-600">

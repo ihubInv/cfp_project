@@ -150,16 +150,18 @@ const PIManagement = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen p-6">
       {/* Page Header */}
-      <div className="flex justify-between items-start">
+      <div className="flex justify-between items-start mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">PI Management</h1>
-          <p className="text-gray-600">Manage Principal Investigator accounts and credentials</p>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+            PI Management
+          </h1>
+          <p className="text-gray-600 text-lg">Manage Principal Investigator accounts and credentials</p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-[#0d559e] hover:bg-[#0d559e]/90">
+            <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
               <Plus className="h-4 w-4 mr-2" />
               Create PI Account
             </Button>
